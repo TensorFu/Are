@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# are/commands/base.py
+
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 

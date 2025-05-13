@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# are/commands/classes.py
+
 from typing import List, Any
 from are.commands.base import CommandBase
 from are.core import AreConsole

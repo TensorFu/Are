@@ -3,3 +3,4 @@ click
 rich
 prompt_toolkit
 hexdump
+androguard

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# are/core/typescript.py
+
 import os
 import subprocess
 import tempfile

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# are/commands/methods.py
+
 from typing import List, Any
 from prompt_toolkit.completion import Completion
 from are.commands.base import CommandBase

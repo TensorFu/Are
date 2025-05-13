@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# are/core/session.py
+
 import frida
 import json
 from typing import Dict, Optional, List, Any, Callable

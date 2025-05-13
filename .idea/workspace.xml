@@ -5,32 +5,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efb3ec09-d351-4805-a6af-f7a61cecd696" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/are/commands/classes.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/are/commands/env.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/are/commands/info.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/are/commands/methods.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/are/core/typescript.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/are/resources/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/are/scripts/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/are/scripts/modules/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/cli.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/commands/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/commands/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/commands/help.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/help.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/commands/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/memory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MANIFEST.in" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/are.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/session.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/session.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/ui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/banner.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are/resources/banner.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/base.ts" beforeDir="false" afterPath="$PROJECT_DIR$/are/scripts/base.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/modules/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/modules/logger.ts" beforeDir="false" afterPath="$PROJECT_DIR$/are/scripts/modules/logger.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are.egg-info/PKG-INFO" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/PKG-INFO" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are.egg-info/requires.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/requires.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/cli.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/classes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/env.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/env.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/help.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/help.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/info.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/info.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/methods.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/methods.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/are.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/session.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/session.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/typescript.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/typescript.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/ui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/resources/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/resources/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/scripts/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/scripts/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/scripts/modules/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/scripts/modules/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/cli.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/help.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/commands/help.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/core/are.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -131,7 +132,7 @@
       <updated>1747104375823</updated>
       <workItem from="1747104376834" duration="5729000" />
       <workItem from="1747115895293" duration="964000" />
-      <workItem from="1747116868775" duration="12257000" />
+      <workItem from="1747116868775" duration="25514000" />
     </task>
     <servers />
   </component>

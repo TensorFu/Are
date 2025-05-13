@@ -1,335 +1,332 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# are/core/are.py
+# are/core/are.py
 import os
 import sys
+import time
 import frida
-from typing import Dict, Optional
+import threading
+from typing import Optional, List, Dict, Any
+from rich.console import Console
+from rich.prompt import Prompt
 from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.styles import Style
-from are.core.ui import AreConsole, ProgressSpinner
-from are.core.session import Session
-from are.commands import get_commands, CommandBase
-
-# 控制台实例
-console = AreConsole()
+from are.core import AreConsole
+from are.commands import get_all_commands
 
 
 class AreCompleter(Completer):
-    """命令补全器"""
+    """Command completer for the ARE console"""
 
-    def __init__(self, commands: Dict[str, CommandBase]):
-        self.commands = commands
+    def __init__(self, are_instance):
+        self.are_instance = are_instance
+        self.commands = get_all_commands()
 
     def get_completions(self, document, complete_event):
-        text = document.text_before_cursor
+        text = document.text_before_cursor.lstrip()
 
-        # 空输入时提供所有命令
-        if not text.strip():
-            for name in sorted(self.commands.keys()):
-                yield Completion(name, start_position=0, display=name,
-                                 display_meta=self.commands[name].help_short)
+        # Split text into command and arguments
+        parts = text.split()
+        cmd = parts[0].lower() if parts else ""
+        args = parts[1:] if len(parts) > 1 else []
+
+        # Get completions for commands
+        if not text or not cmd:
+            # Show all commands
+            for name, cmd_obj in self.commands.items():
+                yield Completion(
+                    name,
+                    start_position=-len(text),
+                    display=name,
+                    display_meta=cmd_obj.help_short
+                )
             return
 
-        # 解析命令
-        parts = text.strip().split()
-
-        # 首个词的补全
-        if len(parts) == 1 and not text.endswith(' '):
-            word = parts[0]
-            for name in sorted(self.commands.keys()):
-                if name.startswith(word):
-                    yield Completion(name, start_position=-len(word), display=name,
-                                     display_meta=self.commands[name].help_short)
+        # If it's a partial command, complete it
+        if len(parts) == 1:
+            for name, cmd_obj in self.commands.items():
+                if name.startswith(cmd):
+                    yield Completion(
+                        name,
+                        start_position=-len(cmd),
+                        display=name,
+                        display_meta=cmd_obj.help_short
+                    )
             return
 
-        # 子命令补全
-        if len(parts) >= 1:
-            command = parts[0]
-            if command in self.commands:
-                # 获取命令对象
-                cmd_obj = self.commands[command]
-
-                # 调用命令的补全方法
-                if hasattr(cmd_obj, 'get_completions'):
-                    for comp in cmd_obj.get_completions(document, parts[1:]):
-                        yield comp
+        # If it's a command with arguments, delegate to the command's completer
+        if cmd in self.commands:
+            cmd_obj = self.commands[cmd]
+            yield from cmd_obj.get_completions(document, args)
 
 
 class Are:
+    """Main ARE class"""
+
     def __init__(self, device_id: Optional[str] = None):
         """
-        初始化ARE实例
+        Initialize ARE
 
-        参数:
-            device_id: 设备ID，None表示使用本地设备
+        Args:
+            device_id: frida device ID
         """
-        # 获取设备
-        if device_id:
-            try:
-                self.device = frida.get_device(device_id)
-            except frida.InvalidArgumentError:
-                console.error(f"Device {device_id} not found!")
-                sys.exit(1)
-        else:
-            try:
-                self.device = frida.get_local_device()
-            except frida.InvalidArgumentError:
-                console.error("No local device available!")
-                sys.exit(1)
+        self.console = AreConsole()
+        self.device_id = device_id
+        self.device = None
+        self.script = None
+        self.session = None
+        self.process = None
+        self.current_session = None
+        self.commands = get_all_commands()
+        self.running = False
+        self.device_name = "Unknown Device"
+        self.process_name = None
 
-        # 会话管理
-        self.sessions: Dict[str, Session] = {}
-        self.current_session: Optional[Session] = None
+        # Try to get the device
+        self._get_device()
 
-        # 命令注册
-        self.commands = get_commands()
-
-        # 提示会话
-        history_file = os.path.expanduser("~/.are_history")
-        self.history = FileHistory(history_file)
-        self.completer = AreCompleter(self.commands)
-        self.session = PromptSession(
-            history=self.history,
-            auto_suggest=AutoSuggestFromHistory(),
-            completer=self.completer,
-            style=Style.from_dict({
-                'prompt': 'ansicyan bold',
-                'rprompt': 'ansigreen',
-            })
-        )
-
-        # 显示横幅
-        self._show_banner()
-
-    def _show_banner(self):
-        """显示ARE标题"""
-        # 从文件加载ASCII艺术标题
-        banner_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            'resources',
-            'banner.txt'
-        )
-
+    def _get_device(self):
+        """Get the frida device"""
         try:
-            with open(banner_path, 'r') as f:
-                banner = f.read()
-                console.banner(banner)
-        except FileNotFoundError:
-            # 如果文件不存在，显示简单标题
-            console.banner("ARE - Android Reverse Engineering")
+            # Get all devices
+            devices = frida.enumerate_devices()
 
-        console.info("A Frida-based instrumentation toolkit")
-        console.info("Type 'help' for available commands")
-        console.newline()
+            if not devices:
+                self.console.error("No devices found")
+                return False
 
-    def attach(self, process_name: str, initial_command: Optional[str] = None) -> bool:
+            # If device_id is specified, find that device
+            if self.device_id:
+                for device in devices:
+                    if device.id == self.device_id:
+                        self.device = device
+                        self.device_name = device.name
+                        return True
+
+                self.console.error(f"Device with ID {self.device_id} not found")
+                return False
+
+            # Otherwise, use the first USB device
+            for device in devices:
+                if device.type == "usb":
+                    self.device = device
+                    self.device_name = device.name
+                    return True
+
+            # If no USB device, use the first device
+            self.device = devices[0]
+            self.device_name = self.device.name
+            return True
+
+        except Exception as e:
+            self.console.error(f"Error getting device: {str(e)}")
+            return False
+
+    def attach(self, process_name: str, cmd: Optional[str] = None):
         """
-        附加到现有进程
+        Attach to a process
 
-        参数:
-            process_name: 目标进程名
-            initial_command: 附加后要执行的初始命令
-
-        返回:
-            是否成功
+        Args:
+            process_name: Process name or PID
+            cmd: JavaScript command to execute
+            
+        Returns:
+            bool: Whether the attachment was successful
         """
-        with ProgressSpinner(f"Attaching to {process_name}") as spinner:
+        try:
+            # Try to get the device first
+            if not self.device and not self._get_device():
+                return False
+
+            # Try to attach to the process
             try:
-                # 查找进程
-                target = None
-                for process in self.device.enumerate_processes():
-                    if process.name == process_name:
-                        target = process
-                        break
+                # Check if process_name is a PID
+                if process_name.isdigit():
+                    pid = int(process_name)
+                    self.session = self.device.attach(pid)
+                    # Get process name from PID
+                    for process in self.device.enumerate_processes():
+                        if process.pid == pid:
+                            self.process_name = process.name
+                            break
+                else:
+                    # Find processes matching the name
+                    processes = [p for p in self.device.enumerate_processes() if process_name.lower() in p.name.lower()]
 
-                if not target:
-                    console.error(f"Process {process_name} not found!")
-                    return False
+                    if not processes:
+                        self.console.error(f"No process matching '{process_name}' found")
+                        return False
 
-                # 创建会话
-                frida_session = self.device.attach(target.pid)
-                session = Session(frida_session, target, self.device)
-                self.sessions[process_name] = session
-                self.current_session = session
+                    # If multiple matches, show them and ask user to select
+                    if len(processes) > 1:
+                        self.console.info(f"Found {len(processes)} processes matching '{process_name}':")
+                        for i, p in enumerate(processes):
+                            self.console.print(f"[{i}] {p.name} (PID: {p.pid})")
 
-                # 加载基本脚本
-                session.load_typescript("base")
+                        index = Prompt.ask("Select process", default="0")
+                        try:
+                            index = int(index)
+                            if index < 0 or index >= len(processes):
+                                self.console.error("Invalid selection")
+                                return False
+                        except ValueError:
+                            self.console.error("Invalid selection")
+                            return False
 
-                # 显示会话信息
-                console.success(f"Attached to {process_name} (PID: {target.pid})")
+                        process = processes[index]
+                    else:
+                        process = processes[0]
 
-                # 启动交互式会话
-                self._interactive_session(initial_command)
+                    self.process_name = process.name
+                    self.session = self.device.attach(process.pid)
+
+                self.current_session = {
+                    "device": self.device,
+                    "session": self.session,
+                    "process_name": self.process_name
+                }
+
+                # Execute the command if specified
+                if cmd:
+                    script = self.session.create_script(cmd)
+                    script.load()
+
+                # Start the console
+                self._start_console()
                 return True
 
             except frida.ProcessNotFoundError:
-                console.error(f"Process {process_name} not found!")
+                self.console.error(f"Process '{process_name}' not found")
                 return False
             except Exception as e:
-                console.error(f"Error attaching to process: {str(e)}")
+                self.console.error(f"Error attaching to process: {str(e)}")
                 return False
 
-    def spawn_and_attach(self, process_name: str, initial_command: Optional[str] = None) -> bool:
-        """
-        生成并附加到新进程
+        except Exception as e:
+            self.console.error(f"Error: {str(e)}")
+            return False
 
-        参数:
-            process_name: 目标进程名
-            initial_command: 附加后要执行的初始命令
+    def _start_console(self):
+        """Start the interactive console"""
+        # Set up history
+        history_file = os.path.expanduser("~/.are_history")
 
-        返回:
-            是否成功
-        """
-        with ProgressSpinner(f"Spawning {process_name}") as spinner:
+        # Set up prompt style
+        style = Style.from_dict({
+            'prompt': 'green bold',
+        })
+
+        # Set up session
+        session = PromptSession(
+            history=FileHistory(history_file),
+            auto_suggest=AutoSuggestFromHistory(),
+            completer=AreCompleter(self),
+            style=style
+        )
+
+        self.running = True
+
+        # Before starting the console, show a welcome message
+        if not self.process_name:
+            # In the main ARE session
+            prompt_text = f"are is running on {self.device_name} -> "
+            self.console.success(f"ARE is now running on {self.device_name}")
+            self.console.info("Type 'watching <process_name>' to attach to a process")
+            self.console.info("Type 'help' to see all available commands")
+        else:
+            # In a process-specific session
+            connection_type = "usb" if self.device.type == "usb" else "remote"
+            # Format the prompt to match the desired format for process sessions
+            device_name = self.device_name if self.device_name else "Unknown"
+            prompt_text = f"{self.process_name} on ({device_name}) [{connection_type}] # "
+            self.console.success(f"Attached to process: {self.process_name}")
+            self.console.info("You can now execute commands like 'hook com.example.Class.method'")
+
+        while self.running:
             try:
-                # 生成进程
-                pid = self.device.spawn(process_name)
+                # Get input
+                command = session.prompt(prompt_text)
 
-                # 附加到进程
-                frida_session = self.device.attach(pid)
-
-                # 获取进程信息
-                target = None
-                for process in self.device.enumerate_processes():
-                    if process.pid == pid:
-                        target = process
-                        break
-
-                if not target:
-                    console.error(f"Spawned process not found!")
-                    return False
-
-                # 创建会话
-                session = Session(frida_session, target, self.device)
-                self.sessions[process_name] = session
-                self.current_session = session
-
-                # 加载基本脚本
-                session.load_typescript("base")
-
-                # 恢复进程执行
-                self.device.resume(pid)
-
-                # 显示会话信息
-                console.success(f"Spawned and attached to {process_name} (PID: {target.pid})")
-
-                # 启动交互式会话
-                self._interactive_session(initial_command)
-                return True
-
-            except Exception as e:
-                console.error(f"Error spawning process: {str(e)}")
-                return False
-
-    def _interactive_session(self, initial_command: Optional[str] = None):
-        """
-        启动交互式会话
-
-        参数:
-            initial_command: 要执行的初始命令
-        """
-        if not self.current_session:
-            console.error("No active session!")
-            return
-
-        # 如果有初始命令，首先执行它
-        if initial_command:
-            # 检查是否使用 'with' 关键字
-            if initial_command.startswith('with '):
-                initial_command = initial_command[5:]  # 去掉 'with ' 前缀
-
-            self._execute_command(initial_command)
-
-        # 交互循环
-        try:
-            while self.current_session and self.current_session.is_active():
-                # 构建提示符
-                prompt = self._build_prompt()
-
-                # 获取用户输入
-                try:
-                    command = self.session.prompt(prompt)
-                except KeyboardInterrupt:
-                    console.newline()
+                # Skip empty commands
+                if not command.strip():
                     continue
 
-                # 执行命令
-                if command.strip():
-                    self._execute_command(command)
+                # Process the command
+                self._process_command(command)
 
-        except KeyboardInterrupt:
-            console.warning("\nExiting session...")
-        except Exception as e:
-            console.error(f"Error in interactive session: {str(e)}")
-        finally:
-            # 如果会话仍在活动，尝试清理
-            if self.current_session and self.current_session.is_active():
-                try:
-                    self.current_session.detach()
-                except Exception as e:
-                    console.error(f"Error detaching session: {str(e)}")
+            except KeyboardInterrupt:
+                # Catch Ctrl+C
+                self.console.print("\nUse 'exit' or 'quit' to exit")
+            except EOFError:
+                # Catch Ctrl+D
+                self.running = False
+                self.console.print("\nGoodbye!")
+            except Exception as e:
+                self.console.error(f"Error: {str(e)}")
 
-            self.current_session = None
-
-    def _build_prompt(self) -> str:
-        """构建交互式提示符"""
-        if not self.current_session:
-            return "are > "
-
-        target = self.current_session.target
-        device = self.current_session.device
-
-        # 获取设备信息
-        device_info = []
-        if hasattr(device, 'name') and device.name:
-            device_info.append(device.name)
-
-        if hasattr(device, 'id') and device.id:
-            id_parts = device.id.split(':')
-            if len(id_parts) > 1:
-                device_info.append(id_parts[0])
-
-        # 设备类型
-        device_type = "usb"
-        if hasattr(device, 'type'):
-            device_type = device.type
-
-        # 构建提示符
-        device_str = ": ".join(device_info) if device_info else "device"
-        return f"{target.name} on ({device_str}) [{device_type}] # "
-
-    def _execute_command(self, command_line: str):
+    def _process_command(self, command: str):
         """
-        执行命令
+        Process a command
 
-        参数:
-            command_line: 命令行文本
+        Args:
+            command: The command string
         """
-        parts = command_line.strip().split(maxsplit=1)
-        if not parts:
-            return
-
-        command_name = parts[0]
+        # Split command and arguments
+        parts = command.strip().split(maxsplit=1)
+        cmd = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
 
-        # 检查是否为内置命令
-        if command_name == "exit" or command_name == "quit":
-            if self.current_session:
-                self.current_session.detach()
-                self.current_session = None
+        # Handle built-in commands
+        if cmd in ["exit", "quit"]:
+            self.running = False
+            self.console.print("Goodbye!")
             return
 
-        # 查找命令
-        if command_name in self.commands:
-            cmd = self.commands[command_name]
+        # Handle help command
+        if cmd == "help":
+            self._show_help(args)
+            return
+
+        # Handle other commands
+        if cmd in self.commands:
             try:
-                cmd.execute(self, args)
+                self.commands[cmd].execute(self, args)
             except Exception as e:
-                console.error(f"Error executing command: {str(e)}")
+                self.console.error(f"Error executing command: {str(e)}")
         else:
-            console.error(f"Unknown command: {command_name}")
-            console.info("Type 'help' for a list of available commands")
+            self.console.error(f"Unknown command: {cmd}")
+            self.console.info("Type 'help' to see available commands")
+
+    def _show_help(self, args: str):
+        """
+        Show help for commands
+
+        Args:
+            args: Command to show help for
+        """
+        if args:
+            # Show help for specific command
+            cmd = args.strip().lower()
+            if cmd in self.commands:
+                cmd_obj = self.commands[cmd]
+                self.console.panel(
+                    f"{cmd_obj.help_text}\n\nUsage: {cmd_obj.usage}\n\nExamples:\n" +
+                    "\n".join([f"  {ex}" for ex in cmd_obj.examples]),
+                    title=f"Help for '{cmd}'",
+                    style="info"
+                )
+            else:
+                self.console.error(f"Unknown command: {cmd}")
+        else:
+            # Show general help
+            self.console.panel(
+                "\n".join([f"{name.ljust(15)} - {cmd.help_short}" for name, cmd in self.commands.items()]),
+                title="Available Commands",
+                style="info"
+            )
+            self.console.info("Type 'help <command>' for more information on a specific command")

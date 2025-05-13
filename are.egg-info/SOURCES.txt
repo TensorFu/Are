@@ -3,7 +3,6 @@ README.md
 setup.py
 are/__init__.py
 are/cli.py
-are/main.py
 are.egg-info/PKG-INFO
 are.egg-info/SOURCES.txt
 are.egg-info/dependency_links.txt
@@ -15,6 +14,7 @@ are/commands/base.py
 are/commands/classes.py
 are/commands/env.py
 are/commands/help.py
+are/commands/hook.py
 are/commands/info.py
 are/commands/memory.py
 are/commands/methods.py

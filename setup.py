@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# setup.py
 from setuptools import setup, find_packages
 
 # 读取README
@@ -19,14 +20,14 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "frida"
         "frida-tools",
         "click",
         "rich",
         "prompt_toolkit",
         "hexdump",
+        "androguard"
     ],
-    entry_points={
+    entry_points={ # 入口
         'console_scripts': [
             'are=are.cli:main',
         ],

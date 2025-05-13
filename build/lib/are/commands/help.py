@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# are/commands/help.py
+
 from typing import List, Any
 from prompt_toolkit.completion import Completion
 from are.commands.base import CommandBase
@@ -51,10 +53,10 @@ class HelpCommand(CommandBase):
 
     def get_completions(self, document, args: List[str]):
         """获取命令补全"""
-        from are.core import Are
+        from are.core import are
 
         # 确保上下文是ARE实例
-        if not isinstance(document.app.session.context, Are):
+        if not isinstance(document.app.session.context, are):
             return []
 
         are = document.app.session.context
