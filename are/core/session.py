@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import frida
-import time
 import json
 from typing import Dict, Optional, List, Any, Callable
-from core.ui import AreConsole
-from core.utils import load_typescript_script, compile_typescript
+
+from frida import _frida
+
+from are.core.ui import AreConsole
+from are.core.utils import compile_typescript
 
 # 控制台实例
 console = AreConsole()
@@ -16,7 +17,7 @@ console = AreConsole()
 class Session:
     """Frida会话管理类"""
 
-    def __init__(self, frida_session: frida.core.Session, target: frida.core.Process, device: frida.core.Device):
+    def __init__(self, frida_session: frida.core.Session, target: _frida.Process, device: frida.core.Device):
         """
         初始化会话
 

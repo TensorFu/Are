@@ -1,0 +1,2 @@
+[console_scripts]
+are = are.cli:main

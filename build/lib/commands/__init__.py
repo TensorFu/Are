@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Dict, Any
-from commands.base import CommandBase
-from commands.help import HelpCommand
-from commands.memory import MemoryCommand
-from commands.classes import ClassesCommand
-from commands.env import EnvCommand
-from commands.methods import MethodsCommand
-from commands.info import InfoCommand
+from typing import Dict
+from are.commands import CommandBase
+from are.commands import HelpCommand
+from are.commands import MemoryCommand
+from are.commands import ClassesCommand
+from are.commands import EnvCommand
+from are.commands import MethodsCommand
+from are.commands import InfoCommand
 
 
 def get_commands() -> Dict[str, CommandBase]:

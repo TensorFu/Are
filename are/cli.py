@@ -5,7 +5,8 @@ import os
 import sys
 import click
 import re
-from core.are import Are
+from are.core.are import Are
+from are.core.utils import get_version, list_devices
 
 
 @click.group(invoke_without_command=True)
@@ -52,14 +53,13 @@ def spawn(process_name, command=None, device=None):
 @cli.command()
 def version():
     """Display the current version"""
-    from core.utils import get_version
-    click.echo(f"ARE version {get_version()}")
+    from are import __version__
+    click.echo(f"ARE version {__version__}")
 
 
 @cli.command()
 def devices():
     """List available devices"""
-    from core.utils import list_devices
     list_devices()
 
 

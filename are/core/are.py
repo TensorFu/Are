@@ -4,19 +4,15 @@
 import os
 import sys
 import frida
-import time
-import json
-import threading
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.styles import Style
-from core.ui import AreConsole, ProgressSpinner
-from core.session import Session
-from core.utils import load_typescript_script
-from commands import get_commands, CommandBase
+from are.core.ui import AreConsole, ProgressSpinner
+from are.core.session import Session
+from are.commands import get_commands, CommandBase
 
 # 控制台实例
 console = AreConsole()

@@ -3,8 +3,8 @@
 
 from typing import List, Any
 from prompt_toolkit.completion import Completion
-from commands.base import CommandBase
-from core.ui import AreConsole
+from are.commands.base import CommandBase
+from are.core import AreConsole
 
 # 控制台实例
 console = AreConsole()
@@ -51,7 +51,7 @@ class HelpCommand(CommandBase):
 
     def get_completions(self, document, args: List[str]):
         """获取命令补全"""
-        from core.are import Are
+        from are.core import Are
 
         # 确保上下文是ARE实例
         if not isinstance(document.app.session.context, Are):

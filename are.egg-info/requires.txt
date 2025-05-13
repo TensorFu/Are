@@ -1,0 +1,5 @@
+frida-tools
+click
+rich
+prompt_toolkit
+hexdump

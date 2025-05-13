@@ -4,7 +4,35 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="efb3ec09-d351-4805-a6af-f7a61cecd696" name="Changes" comment="" />
+    <list default="true" id="efb3ec09-d351-4805-a6af-f7a61cecd696" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/are/commands/classes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/commands/env.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/commands/info.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/commands/methods.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/core/typescript.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/resources/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/scripts/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/scripts/modules/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/cli.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/commands/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/commands/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/commands/help.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/help.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/commands/memory.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/memory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/MANIFEST.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/are.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/session.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/session.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/ui.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/banner.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are/resources/banner.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/base.ts" beforeDir="false" afterPath="$PROJECT_DIR$/are/scripts/base.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/modules/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/modules/logger.ts" beforeDir="false" afterPath="$PROJECT_DIR$/are/scripts/modules/logger.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -50,6 +78,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/are" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Are" />
@@ -65,7 +98,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/are/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -98,12 +131,23 @@
       <updated>1747104375823</updated>
       <workItem from="1747104376834" duration="5729000" />
       <workItem from="1747115895293" duration="964000" />
-      <workItem from="1747116868775" duration="1391000" />
+      <workItem from="1747116868775" duration="12257000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Are$main.coverage" NAME="main Coverage Results" MODIFIED="1747104487429" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

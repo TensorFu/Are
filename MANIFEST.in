@@ -1,0 +1,5 @@
+include are/resources/*
+include are/scripts/*.ts
+include are/scripts/modules/*.ts
+recursive-include are/resources *
+recursive-include are/scripts *.ts

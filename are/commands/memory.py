@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import re
 from typing import List, Any
 from prompt_toolkit.completion import Completion
-from commands.base import CommandBase
-from core.ui import AreConsole
+from are.commands.base import CommandBase
+from are.core import AreConsole
 
 # 控制台实例
 console = AreConsole()

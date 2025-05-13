@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import frida
 import json
 import subprocess
 import tempfile
 from typing import Optional, List, Dict, Any
-from core.ui import AreConsole
+from are.core.ui import AreConsole
 
 # 控制台实例
 console = AreConsole()
