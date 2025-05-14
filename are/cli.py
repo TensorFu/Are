@@ -14,6 +14,7 @@ import time
 from rich.console import Console
 from rich.panel import Panel
 
+
 # Initialize console
 console = AreConsole()
 
@@ -105,6 +106,7 @@ def check_frida_server_running():
         console.error(f"Error checking if frida-server is running: {str(e)}")
         return False
 
+
 def start_frida_server(server_path):
     """Try to start the frida-server at the specified path"""
     try:
@@ -113,45 +115,243 @@ def start_frida_server(server_path):
             if check_frida_server_running():
                 console.success("Frida server is already running")
                 return True
-                
-            # Try to start with root
-            if check_root_access():
-                # Kill any existing instances first
+
+            # Try to get root access (max 5 attempts)
+            root_access = False
+            with console.progress() as progress:
+                task = progress.add_task("[yellow]Requesting root access...", total=5)
+
+                for i in range(5):
+                    # Update progress bar
+                    progress.update(task, completed=i,
+                                    description=f"[yellow]Requesting root access... Attempt {i + 1}/5")
+
+                    # Try to request root
+                    subprocess.run(["adb", "shell", "su", "-c", "echo 'Requesting root'"], check=False)
+
+                    # Check if root access granted
+                    if check_root_access():
+                        root_access = True
+                        progress.update(task, completed=5, description="[green]Root access granted")
+                        break
+
+                    time.sleep(1)
+
+            if root_access:
+                # Kill any existing frida-server instances
                 subprocess.run(
-                    ["adb", "shell", "su", "-c", "killall frida-server 2>/dev/null"], 
+                    ["adb", "shell", "su", "-c", "killall frida-server 2>/dev/null"],
                     check=False
                 )
-                
-                # Start the server with root
-                result = subprocess.run(
-                    ["adb", "shell", "su", "-c", f"chmod 755 {server_path} && {server_path} &"],
-                    check=False
-                )
-                
-                # Wait a moment and check if it's running
-                time.sleep(2)
-                if check_frida_server_running():
+
+                # Check file permissions
+                is_executable = False
+                with console.progress() as progress:
+                    task = progress.add_task("[yellow]Checking file permissions...", total=5)
+
+                    for i in range(5):
+                        # Update progress bar
+                        progress.update(task, completed=i,
+                                        description=f"[yellow]Checking file permissions... Attempt {i + 1}/5")
+
+                        # Check if file is executable
+                        check_exec = subprocess.run(
+                            ["adb", "shell", "su", "-c", f"[ -x {server_path} ] && echo 'executable'"],
+                            capture_output=True,
+                            text=True,
+                            check=False
+                        )
+
+                        if "executable" in check_exec.stdout:
+                            is_executable = True
+                            progress.update(task, completed=5, description="[green]File is executable")
+                            break
+
+                        # Grant executable permissions
+                        subprocess.run(
+                            ["adb", "shell", "su", "-c", f"chmod 755 {server_path}"],
+                            check=False
+                        )
+
+                        time.sleep(1)
+
+                if not is_executable:
+                    raise Exception("Failed to set executable permissions after 5 attempts")
+
+                # Start frida-server with nohup to prevent hanging
+                console.status("Starting Frida server...")
+
+                try:
+                    # Method 1: Use nohup to ensure process runs in background
+                    subprocess.run(
+                        ["adb", "shell", "su", "-c", f"nohup {server_path} > /dev/null 2>&1 &"],
+                        check=False,
+                        timeout=3  # Add timeout to prevent hanging
+                    )
+                except subprocess.TimeoutExpired:
+                    # If timeout occurs, this might be normal - server may be starting in background
+                    pass
+
+                # Check if frida-server started successfully
+                server_running = False
+                with console.progress() as progress:
+                    task = progress.add_task("[yellow]Waiting for Frida server to start...", total=5)
+
+                    for i in range(5):
+                        # Update progress bar
+                        progress.update(task, completed=i,
+                                        description=f"[yellow]Waiting for Frida server... Attempt {i + 1}/5")
+                        time.sleep(1)
+
+                        if check_frida_server_running():
+                            server_running = True
+                            progress.update(task, completed=5, description="[green]Frida server started successfully")
+                            break
+
+                if server_running:
                     console.success(f"Started {os.path.basename(server_path)} with root privileges")
                     return True
-                else:
-                    console.error("Failed to start frida-server with root privileges")
-                    return False
+
+                # If first method failed, try alternative method
+                console.status("First method failed, trying alternative method...")
+                try:
+                    # Method 2: Use subprocess.Popen with new session
+                    subprocess.Popen(
+                        ["adb", "shell", "su", "-c", f"{server_path}"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        start_new_session=True
+                    )
+                except Exception as e:
+                    console.error(f"Alternative method error: {str(e)}")
+
+                # Check again if server started
+                server_running = False
+                with console.progress() as progress:
+                    task = progress.add_task("[yellow]Checking alternative method...", total=5)
+
+                    for i in range(5):
+                        progress.update(task, completed=i,
+                                        description=f"[yellow]Checking alternative method... Attempt {i + 1}/5")
+                        time.sleep(1)
+
+                        if check_frida_server_running():
+                            server_running = True
+                            progress.update(task, completed=5, description="[green]Frida server started successfully")
+                            break
+
+                if server_running:
+                    console.success(
+                        f"Started {os.path.basename(server_path)} with root privileges (alternative method)")
+                    return True
+
+                raise Exception("Failed to start frida-server with root privileges after all attempts")
             else:
-                # Try to start without root
-                result = subprocess.run(
-                    ["adb", "shell", f"chmod 755 {server_path} && {server_path} &"],
-                    check=False
-                )
-                
-                # Wait a moment and check if it's running
-                time.sleep(2)
-                if check_frida_server_running():
+                # Try without root
+                console.warning("Failed to get root access, trying without root...")
+
+                # Check file permissions
+                is_executable = False
+                with console.progress() as progress:
+                    task = progress.add_task("[yellow]Checking file permissions (non-root)...", total=5)
+
+                    for i in range(5):
+                        # Update progress bar
+                        progress.update(task, completed=i,
+                                        description=f"[yellow]Checking permissions (non-root)... Attempt {i + 1}/5")
+
+                        # Check if file is executable
+                        check_exec = subprocess.run(
+                            ["adb", "shell", f"[ -x {server_path} ] && echo 'executable'"],
+                            capture_output=True,
+                            text=True,
+                            check=False
+                        )
+
+                        if "executable" in check_exec.stdout:
+                            is_executable = True
+                            progress.update(task, completed=5, description="[green]File is executable")
+                            break
+
+                        # Grant executable permissions
+                        subprocess.run(
+                            ["adb", "shell", f"chmod 755 {server_path}"],
+                            check=False
+                        )
+
+                        time.sleep(1)
+
+                if not is_executable:
+                    raise Exception("Failed to set executable permissions (non-root) after 5 attempts")
+
+                # Start frida-server with nohup
+                console.status("Starting Frida server (non-root)...")
+
+                try:
+                    # Use nohup to ensure process runs in background
+                    subprocess.run(
+                        ["adb", "shell", f"nohup {server_path} > /dev/null 2>&1 &"],
+                        check=False,
+                        timeout=3
+                    )
+                except subprocess.TimeoutExpired:
+                    pass
+
+                # Check if frida-server started successfully
+                server_running = False
+                with console.progress() as progress:
+                    task = progress.add_task("[yellow]Waiting for Frida server (non-root)...", total=5)
+
+                    for i in range(5):
+                        # Update progress bar
+                        progress.update(task, completed=i,
+                                        description=f"[yellow]Waiting for server (non-root)... Attempt {i + 1}/5")
+                        time.sleep(1)
+
+                        if check_frida_server_running():
+                            server_running = True
+                            progress.update(task, completed=5, description="[green]Frida server started successfully")
+                            break
+
+                if server_running:
                     console.warning(
                         f"Started {os.path.basename(server_path)} without root privileges. Some features may not work.")
                     return True
-                else:
-                    console.error("Failed to start frida-server without root privileges")
-                    return False
+
+                # Try alternative method
+                console.status("First method failed, trying alternative method (non-root)...")
+                try:
+                    # Use subprocess.Popen with new session
+                    subprocess.Popen(
+                        ["adb", "shell", f"{server_path}"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        start_new_session=True
+                    )
+                except Exception as e:
+                    console.error(f"Alternative method error: {str(e)}")
+
+                # Check again if server started
+                server_running = False
+                with console.progress() as progress:
+                    task = progress.add_task("[yellow]Checking alternative method (non-root)...", total=5)
+
+                    for i in range(5):
+                        progress.update(task, completed=i,
+                                        description=f"[yellow]Checking alternative (non-root)... Attempt {i + 1}/5")
+                        time.sleep(1)
+
+                        if check_frida_server_running():
+                            server_running = True
+                            progress.update(task, completed=5, description="[green]Frida server started successfully")
+                            break
+
+                if server_running:
+                    console.warning(
+                        f"Started {os.path.basename(server_path)} without root privileges (alternative method). Some features may not work.")
+                    return True
+
+                raise Exception("Failed to start frida-server without root privileges after all attempts")
         return False
     except Exception as e:
         console.error(f"Error starting frida-server: {str(e)}")

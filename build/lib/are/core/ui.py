@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+from rich import box
 # are/core/ui.py
-import sys
-import time
-from typing import Optional, List, Any, Dict
-from rich.console import Console
 from rich.theme import Theme
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.panel import Panel
-from rich.table import Table
+from rich.progress import  SpinnerColumn
+from typing import Optional, Dict, List, Any
+from rich.console import Console
 from rich.syntax import Syntax
 from rich.markdown import Markdown
-from rich.style import Style
+from rich.panel import Panel
+from rich.table import Table
+from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
 
 # 定义主题
 are_theme = Theme({
@@ -73,6 +71,10 @@ class AreConsole:
         """显示自定义样式文本"""
         self.console.print(text, style=style)
 
+    def print_table(self, table: Table):
+        """打印表格"""
+        self.console.print(table)
+
     def syntax(self, code: str, lexer: str = "python"):
         """显示语法高亮代码"""
         self.console.print(Syntax(code, lexer, theme="monokai"))
@@ -87,7 +89,7 @@ class AreConsole:
 
     def table(self, title: Optional[str] = None) -> Table:
         """创建表格"""
-        return Table(title=title, box=True)
+        return Table(title=title, box=box.SIMPLE)
 
     def show_help(self, commands: Dict[str, Any]):
         """显示帮助信息"""
@@ -114,6 +116,16 @@ class AreConsole:
             self.console.print("\n[bold]Examples:[/bold]")
             for example in examples:
                 self.console.print(f"  {example}")
+
+    def progress(self):
+        """创建一个进度条实例"""
+        return Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeRemainingColumn(),
+            console=self.console
+        )
 
 
 class ProgressSpinner:
