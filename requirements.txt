@@ -1,0 +1,8 @@
+rich~=14.0.0
+frida~=16.7.18
+prompt_toolkit~=3.0.51
+are~=0.1
+click~=8.2.0
+setuptools~=80.4.0
+dataclasses~=0.8; python_version < '3.7'
+asyncio~=3.4.3

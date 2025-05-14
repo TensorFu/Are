@@ -127,6 +127,21 @@ class AreConsole:
             console=self.console
         )
 
+    # 在AreConsole类中添加新的方法
+    def device_disconnected_alert(self):
+        """设备断开连接警报"""
+        self.console.print("\n" + "!" * 50, style="error")
+        self.console.print("[error bold]设备已断开连接！[/error bold]", highlight=True)
+        self.console.print("!" * 50, style="error")
+        self.console.print("请重新连接设备并继续，或输入 'q' 退出程序\n")
+
+    def device_reconnected_alert(self):
+        """设备重新连接警报"""
+        self.console.print("\n" + "=" * 50, style="success")
+        self.console.print("[success bold]设备已重新连接！[/success bold]", highlight=True)
+        self.console.print("=" * 50, style="success")
+        self.console.print("正在重新初始化环境...\n")
+
 
 class ProgressSpinner:
     """进度旋转器上下文管理器"""

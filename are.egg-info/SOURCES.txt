@@ -18,12 +18,15 @@ are/commands/hook.py
 are/commands/info.py
 are/commands/memory.py
 are/commands/methods.py
+are/commands/tasks.py
 are/core/__init__.py
 are/core/are.py
 are/core/session.py
+are/core/task_manager.py
 are/core/typescript.py
 are/core/ui.py
 are/core/utils.py
+are/core/workspace_manager.py
 are/resources/.DS_Store
 are/resources/__init__.py
 are/resources/banner.txt

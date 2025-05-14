@@ -11,6 +11,8 @@ from are.commands.env import EnvCommand
 from are.commands.methods import MethodsCommand
 from are.commands.info import InfoCommand
 from are.commands.hook import HookCommand
+from are.commands.tasks import TasksCommand
+from are.commands.documentation import DocumentationCommand
 
 
 def get_all_commands() -> Dict[str, CommandBase]:
@@ -31,6 +33,8 @@ def get_all_commands() -> Dict[str, CommandBase]:
         MethodsCommand,
         InfoCommand,
         HookCommand,
+        TasksCommand,
+        DocumentationCommand,
         # 添加更多命令...
     ]:
         cmd = command_class()
