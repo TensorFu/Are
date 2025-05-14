@@ -686,3 +686,5 @@ class Are:
         except Exception as e:
             self.console.error(f"检查设备连接时出错: {str(e)}")
             return False
+
+    
