@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# are/core/task_manager.py
+# are/core/tasks/task_manager.py
 import time
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field

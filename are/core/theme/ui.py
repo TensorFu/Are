@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# are/core/theme/ui.py
 from rich import box
-# are/core/ui.py
 from rich.theme import Theme
 from rich.progress import  SpinnerColumn
 from typing import Optional, Dict, List, Any
@@ -197,22 +198,25 @@ class ProgressSpinner:
         """
         初始化进度旋转器
 
-        参数:
-            text: 显示文本
+        Args:
+            text: 显示的文本
         """
+        self.console = Console()
         self.text = text
-        self.progress = Progress(
-            SpinnerColumn(),
-            TextColumn("[status]{task.description}[/status]")
-        )
-        self.task_id = None
+        self.progress = None
+        self.task = None
 
     def __enter__(self):
         """进入上下文"""
+        self.progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=self.console
+        )
         self.progress.start()
-        self.task_id = self.progress.add_task(self.text, total=None)
+        self.task = self.progress.add_task(self.text, total=None)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """退出上下文"""
-        self.progress.stop()
+        self.progress.stop() 

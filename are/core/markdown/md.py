@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-/markdown_generator.py
-Markdown 文档生成器 - 支持所有 Markdown 格式和文本，提供接口供其他函数调用
-"""
+
+# are/core/markdown/md.py
+
 import os
 from typing import List, Dict, Union, Optional, Tuple, Any
 
@@ -205,17 +204,16 @@ class MarkdownGenerator:
 
         for text, level in self.toc_items:
             indent = "    " * (level - 1)
-            link_text = text.lower().replace(" ", "-").replace(".", "").replace(",", "")
-            self.add_line(f"{indent}- [{text}](#{link_text})")
+            self.add_line(f"{indent}- [{text}](#{text.lower().replace(' ', '-')})")
 
         self.add_newline()
         return self
 
-    # ============= 文本格式 =============
+    # ============= 文本样式 =============
 
     def add_bold(self, text: str) -> str:
         """
-        加粗文本
+        添加粗体文本
 
         Args:
             text: 要加粗的文本
@@ -227,19 +225,19 @@ class MarkdownGenerator:
 
     def add_italic(self, text: str) -> str:
         """
-        斜体文本
+        添加斜体文本
 
         Args:
-            text: 要设为斜体的文本
+            text: 要倾斜的文本
 
         Returns:
-            str: 斜体文本
+            str: 倾斜后的文本
         """
         return f"*{text}*"
 
     def add_strikethrough(self, text: str) -> str:
         """
-        删除线文本
+        添加删除线文本
 
         Args:
             text: 要添加删除线的文本
@@ -251,13 +249,13 @@ class MarkdownGenerator:
 
     def add_code(self, text: str) -> str:
         """
-        行内代码
+        添加行内代码
 
         Args:
             text: 代码文本
 
         Returns:
-            str: 行内代码格式文本
+            str: 格式化后的行内代码
         """
         return f"`{text}`"
 
@@ -267,11 +265,11 @@ class MarkdownGenerator:
 
         Args:
             text: 链接文本
-            url: 链接地址
+            url: 链接URL
             title: 链接标题（可选）
 
         Returns:
-            str: Markdown 链接格式
+            str: 格式化后的链接
         """
         if title:
             return f"[{text}]({url} \"{title}\")"
@@ -282,18 +280,18 @@ class MarkdownGenerator:
         添加图片
 
         Args:
-            alt_text: 图片替代文本
-            url: 图片地址
+            alt_text: 替代文本
+            url: 图片URL
             title: 图片标题（可选）
 
         Returns:
-            str: Markdown 图片格式
+            str: 格式化后的图片标记
         """
         if title:
             return f"![{alt_text}]({url} \"{title}\")"
         return f"![{alt_text}]({url})"
 
-    # ============= 段落元素 =============
+    # ============= 段落和引用 =============
 
     def add_paragraph(self, text: str) -> 'MarkdownGenerator':
         """
@@ -326,9 +324,11 @@ class MarkdownGenerator:
                 self.add_line(f"> {line}")
         else:
             self.add_line(f"> {text}")
-
+        
         self.add_newline()
         return self
+
+    # ============= 水平线 =============
 
     def add_horizontal_rule(self) -> 'MarkdownGenerator':
         """
@@ -349,19 +349,15 @@ class MarkdownGenerator:
 
         Args:
             items: 列表项
-            nested_level: 嵌套级别
+            nested_level: 嵌套级别（用于缩进）
 
         Returns:
             self: 支持链式调用
         """
-        old_indent = self.indent_level
-        self.indent_level = nested_level
-
+        indent = "    " * nested_level
         for item in items:
-            prefix = "    " * nested_level
-            self.add_line(f"{prefix}- {item}")
-
-        self.indent_level = old_indent
+            self.add_line(f"{indent}- {item}")
+        
         self.add_newline()
         return self
 
@@ -372,19 +368,15 @@ class MarkdownGenerator:
         Args:
             items: 列表项
             start_num: 起始编号
-            nested_level: 嵌套级别
+            nested_level: 嵌套级别（用于缩进）
 
         Returns:
             self: 支持链式调用
         """
-        old_indent = self.indent_level
-        self.indent_level = nested_level
-
+        indent = "    " * nested_level
         for i, item in enumerate(items, start=start_num):
-            prefix = "    " * nested_level
-            self.add_line(f"{prefix}{i}. {item}")
-
-        self.indent_level = old_indent
+            self.add_line(f"{indent}{i}. {item}")
+        
         self.add_newline()
         return self
 
@@ -394,20 +386,16 @@ class MarkdownGenerator:
 
         Args:
             items: 列表项元组 (文本, 是否完成)
-            nested_level: 嵌套级别
+            nested_level: 嵌套级别（用于缩进）
 
         Returns:
             self: 支持链式调用
         """
-        old_indent = self.indent_level
-        self.indent_level = nested_level
-
-        for text, is_completed in items:
-            prefix = "    " * nested_level
-            checkbox = "[x]" if is_completed else "[ ]"
-            self.add_line(f"{prefix}- {checkbox} {text}")
-
-        self.indent_level = old_indent
+        indent = "    " * nested_level
+        for text, completed in items:
+            checkbox = "[x]" if completed else "[ ]"
+            self.add_line(f"{indent}- {checkbox} {text}")
+        
         self.add_newline()
         return self
 
@@ -419,18 +407,18 @@ class MarkdownGenerator:
 
         Args:
             code: 代码内容
-            language: 语言（用于语法高亮）
+            language: 代码语言（用于语法高亮）
 
         Returns:
             self: 支持链式调用
         """
         self.add_line(f"```{language}")
-
+        
         # 处理多行代码
-        code_lines = code.split('\n')
-        for line in code_lines:
+        lines = code.split('\n')
+        for line in lines:
             self.add_line(line)
-
+            
         self.add_line("```")
         self.add_newline()
         return self
@@ -444,60 +432,57 @@ class MarkdownGenerator:
 
         Args:
             headers: 表头列表
-            rows: 行数据的列表的列表
-            alignments: 对齐方式列表 ('left', 'center', 'right')，默认全部左对齐
+            rows: 表格数据（行列表）
+            alignments: 对齐方式列表，可以是 'left'、'center'、'right' 或 None
 
         Returns:
             self: 支持链式调用
         """
-        if not alignments:
-            alignments = ['left'] * len(headers)
-
-        if len(headers) != len(alignments):
-            raise ValueError("表头和对齐方式数量不匹配")
-
-        # 添加表头
-        header_line = "| " + " | ".join(headers) + " |"
-        self.add_line(header_line)
-
-        # 添加对齐行
-        alignment_markers = []
-        for align in alignments:
-            if align == 'left':
-                alignment_markers.append(':---')
-            elif align == 'center':
-                alignment_markers.append(':---:')
-            elif align == 'right':
-                alignment_markers.append('---:')
-            else:
-                alignment_markers.append('---')  # 默认左对齐
-
-        align_line = "| " + " | ".join(alignment_markers) + " |"
-        self.add_line(align_line)
-
-        # 添加数据行
+        # 验证行数据
         for row in rows:
             if len(row) != len(headers):
-                # 填充或截断行以匹配表头数量
-                if len(row) < len(headers):
-                    row = row + [""] * (len(headers) - len(row))
-                else:
-                    row = row[:len(headers)]
+                raise ValueError("表格行的列数必须与表头列数相同")
 
-            row_line = "| " + " | ".join(row) + " |"
-            self.add_line(row_line)
+        # 构建表头
+        header_row = "| " + " | ".join(headers) + " |"
+        self.add_line(header_row)
+
+        # 构建对齐行
+        if not alignments:
+            alignments = ["left"] * len(headers)
+        elif len(alignments) != len(headers):
+            raise ValueError("对齐方式列表长度必须与表头列数相同")
+
+        separator_parts = []
+        for align in alignments:
+            if align == "left":
+                separator_parts.append(":---")
+            elif align == "center":
+                separator_parts.append(":---:")
+            elif align == "right":
+                separator_parts.append("---:")
+            else:
+                separator_parts.append("---")
+
+        separator_row = "| " + " | ".join(separator_parts) + " |"
+        self.add_line(separator_row)
+
+        # 构建数据行
+        for row in rows:
+            data_row = "| " + " | ".join(row) + " |"
+            self.add_line(data_row)
 
         self.add_newline()
         return self
 
-    # ============= 高级元素 =============
+    # ============= 定义列表 =============
 
     def add_definition_list(self, definitions: Dict[str, str]) -> 'MarkdownGenerator':
         """
         添加定义列表
 
         Args:
-            definitions: 术语和定义的字典
+            definitions: 定义字典 {术语: 定义}
 
         Returns:
             self: 支持链式调用
@@ -506,26 +491,29 @@ class MarkdownGenerator:
             self.add_line(term)
             self.add_line(f": {definition}")
             self.add_newline()
-
         return self
+
+    # ============= 脚注 =============
 
     def add_footnote(self, text: str, footnote_id: str, footnote_text: str) -> str:
         """
-        添加脚注引用
+        添加脚注
 
         Args:
             text: 要添加脚注的文本
-            footnote_id: 脚注标识符
+            footnote_id: 脚注ID
             footnote_text: 脚注内容
 
         Returns:
-            str: 添加了脚注引用的文本
+            str: 带有脚注的文本
         """
-        # 将脚注内容添加到文档末尾
-        self.content.append(f"[^{footnote_id}]: {footnote_text}")
-
+        # 在文档末尾添加脚注定义
+        self.add_line(f"[^{footnote_id}]: {footnote_text}")
+        
         # 返回带有脚注引用的文本
         return f"{text}[^{footnote_id}]"
+
+    # ============= 缩写 =============
 
     def add_abbreviation(self, text: str, abbreviations: Dict[str, str]) -> 'MarkdownGenerator':
         """
@@ -533,21 +521,23 @@ class MarkdownGenerator:
 
         Args:
             text: 包含缩写的文本
-            abbreviations: 缩写和其定义的字典
+            abbreviations: 缩写字典 {缩写: 全称}
 
         Returns:
             self: 支持链式调用
         """
-        self.add_line(text)
+        # 先添加文本
+        self.add_paragraph(text)
+        
+        # 然后添加缩写定义
         self.add_newline()
-
-        for abbr, definition in abbreviations.items():
-            self.add_line(f"*[{abbr}]: {definition}")
-
+        for abbr, full in abbreviations.items():
+            self.add_line(f"*[{abbr}]: {full}")
+        
         self.add_newline()
         return self
 
-    # ============= 扩展功能 =============
+    # ============= 图表 =============
 
     def add_mermaid(self, diagram_code: str) -> 'MarkdownGenerator':
         """
@@ -560,52 +550,59 @@ class MarkdownGenerator:
             self: 支持链式调用
         """
         self.add_line("```mermaid")
-        diagram_lines = diagram_code.split('\n')
-        for line in diagram_lines:
+        
+        # 处理多行代码
+        lines = diagram_code.split('\n')
+        for line in lines:
             self.add_line(line)
+            
         self.add_line("```")
         self.add_newline()
         return self
 
+    # ============= 数学公式 =============
+
     def add_mathjax(self, formula: str, inline: bool = False) -> str:
         """
-        添加数学公式
+        添加 MathJax 数学公式
 
         Args:
-            formula: 数学公式（LaTeX 格式）
+            formula: 数学公式
             inline: 是否为行内公式
 
         Returns:
-            str: 数学公式的 Markdown 表示
+            str: 格式化后的数学公式
         """
         if inline:
             return f"${formula}$"
-        else:
-            return f"$${formula}$$"
+        return f"$${formula}$$"
+
+    # ============= 提示框 =============
 
     def add_callout(self, text: str, callout_type: str = "note") -> 'MarkdownGenerator':
         """
-        添加提示框（仅在某些 Markdown 扩展中支持）
+        添加提示框
 
         Args:
             text: 提示文本
-            callout_type: 提示类型（note, warning, tip, important, caution 等）
+            callout_type: 提示类型（note, info, warning, danger）
 
         Returns:
             self: 支持链式调用
         """
-        self.add_line(f"> [{callout_type.upper()}]")
-        self.add_line(f"> {text}")
+        self.add_line(f"> [{callout_type}] {text}")
         self.add_newline()
         return self
 
+    # ============= 折叠内容 =============
+
     def add_details(self, summary: str, content: str) -> 'MarkdownGenerator':
         """
-        添加可折叠详情块
+        添加折叠内容
 
         Args:
-            summary: 摘要文本
-            content: 详情内容
+            summary: 摘要（标题）
+            content: 折叠内容
 
         Returns:
             self: 支持链式调用
@@ -613,20 +610,25 @@ class MarkdownGenerator:
         self.add_line("<details>")
         self.add_line(f"<summary>{summary}</summary>")
         self.add_newline()
-        self.add_line(content)
+        
+        # 添加内容（可能包含多行）
+        lines = content.split('\n')
+        for line in lines:
+            self.add_line(line)
+            
         self.add_newline()
         self.add_line("</details>")
         self.add_newline()
         return self
 
-    # ============= 辅助方法 =============
+    # ============= 缩进控制 =============
 
     def indent(self, level: int = 1) -> 'MarkdownGenerator':
         """
         增加缩进级别
 
         Args:
-            level: 增加的缩进级别
+            level: 增加的缩进级别数
 
         Returns:
             self: 支持链式调用
@@ -639,7 +641,7 @@ class MarkdownGenerator:
         减少缩进级别
 
         Args:
-            level: 减少的缩进级别
+            level: 减少的缩进级别数
 
         Returns:
             self: 支持链式调用
@@ -647,107 +649,90 @@ class MarkdownGenerator:
         self.indent_level = max(0, self.indent_level - level)
         return self
 
+    # ============= 上下文管理 =============
+
     def with_context(self, indent_level: int = 1):
         """
-        创建一个上下文管理器来管理缩进
+        创建一个缩进上下文，用于 with 语句
 
         Args:
-            indent_level: 上下文中的缩进级别
+            indent_level: 缩进级别
 
         Returns:
-            上下文管理器
+            IndentContext: 缩进上下文管理器
         """
+        return self.IndentContext(self, indent_level)
 
-        class IndentContext:
-            def __init__(self, md_generator, level):
-                self.md = md_generator
-                self.level = level
+    class IndentContext:
+        """缩进上下文管理器内部类"""
+        
+        def __init__(self, md_generator, level):
+            self.md = md_generator
+            self.level = level
+            
+        def __enter__(self):
+            self.md.indent(self.level)
+            return self.md
+            
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.md.dedent(self.level)
 
-            def __enter__(self):
-                self.md.indent(self.level)
-                return self.md
 
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                self.md.dedent(self.level)
-
-        return IndentContext(self, indent_level)
-
-
-# 使用示例
 def example_usage():
     # 创建 Markdown 生成器实例 - 将在当前工作目录下自动创建 markdown/Main.md
     md = MarkdownGenerator()
-    print(f"将在工作目录创建文件: {md.file_path}")
-
-    # 添加标题和目录
-    md.add_heading("Markdown 生成器示例", 1)
-    md.add_paragraph("这是一个 Markdown 生成器的示例文档。")
-
-    # 添加目录
-    md.add_toc()
-
-    # 添加各种元素
-    md.add_heading("基本文本格式", 2)
-    md.add_paragraph(f"这是一个段落，包含{md.add_bold('粗体')}、{md.add_italic('斜体')}和{md.add_code('代码')}。")
-
-    md.add_heading("列表", 2)
-    md.add_unordered_list(["无序列表项 1", "无序列表项 2", "无序列表项 3"])
-    md.add_ordered_list(["有序列表项 1", "有序列表项 2", "有序列表项 3"])
-
-    md.add_heading("代码块", 2)
-    md.add_code_block("""def hello_world():
-    print("Hello, World!")
-    return True""", "python")
-
-    md.add_heading("表格", 2)
-    md.add_table(
-        ["姓名", "年龄", "职业"],
-        [
-            ["张三", "25", "工程师"],
-            ["李四", "30", "设计师"],
-            ["王五", "28", "产品经理"]
-        ],
-        ["left", "center", "right"]
-    )
-
-    md.add_heading("引用", 2)
-    md.add_blockquote("这是一个引用块。", multi_line=False)
-
-    md.add_heading("任务列表", 2)
-    md.add_task_list([
-        ("完成文档", True),
-        ("实现功能", True),
-        ("编写测试", False)
+    
+    # 添加标题
+    md.add_heading("Markdown Generator Example", level=1)
+    
+    # 添加段落
+    md.add_paragraph("This is an example of using the MarkdownGenerator class to create Markdown content programmatically.")
+    
+    # 添加粗体和斜体文本
+    md.add_paragraph(f"You can add {md.add_bold('bold')} or {md.add_italic('italic')} text easily.")
+    
+    # 添加无序列表
+    md.add_heading("Features", level=2)
+    md.add_unordered_list([
+        "Simple API",
+        "Support for all common Markdown elements",
+        "Chainable methods",
+        "Auto-generated table of contents"
     ])
-
-    md.add_heading("数学公式", 2)
-    md.add_paragraph(f"行内公式: {md.add_mathjax('E=mc^2', inline=True)}")
-    md.add_paragraph(f"独立公式:")
-    md.add_line(md.add_mathjax(r'\sum_{i=1}^{n} i = \frac{n(n+1)}{2}', inline=False))
-    md.add_newline()
-
-    md.add_heading("图表", 2)
-    md.add_mermaid("""graph TD
-    A[开始] --> B{是否继续?}
-    B -->|是| C[处理]
-    C --> B
-    B -->|否| D[结束]""")
-
-    # 保存文档到默认路径
+    
+    # 添加代码块
+    md.add_heading("Code Example", level=2)
+    md.add_code_block('''
+def hello_world():
+    print("Hello, world!")
+    
+hello_world()
+''', language="python")
+    
+    # 添加表格
+    md.add_heading("Comparison Table", level=2)
+    md.add_table(
+        headers=["Feature", "MarkdownGenerator", "Manual Writing"],
+        rows=[
+            ["Ease of use", "High", "Medium"],
+            ["Consistency", "High", "Variable"],
+            ["Speed", "Fast", "Depends on user"]
+        ],
+        alignments=["left", "center", "right"]
+    )
+    
+    # 生成目录 (必须在添加完所有标题后)
+    md.add_toc("Table of Contents")
+    
+    # 保存文件
     file_path = md.save()
-    print(f"Markdown 文档已保存到: {file_path}")
-
-    # 也可以保存到工作目录下的其他路径
-    another_path = os.path.join(os.getcwd(), "markdown", "Example.md")
-    md.save(another_path)
-    print(f"Markdown 文档的副本已保存到: {another_path}")
-
-    # 也可以使用相对路径（相对于当前工作目录）
-    md.save("markdown/Another.md")
-    print(f"使用相对路径保存文档到: {os.path.join(os.getcwd(), 'markdown', 'Another.md')}")
-
-    return md.get_content()
+    print(f"Markdown file saved to: {file_path}")
+    
+    # 获取生成的内容
+    content = md.get_content()
+    print("\nGenerated content preview:")
+    print(f"{content[:200]}...")
 
 
 if __name__ == "__main__":
-    example_usage()
+    example_usage() 

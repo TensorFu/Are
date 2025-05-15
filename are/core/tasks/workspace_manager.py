@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# are/core/workspace_manager.py
+# are/core/tasks/workspace_manager.py
 from enum import Enum
 from typing import Dict, Optional, Any, List, Callable
 import os

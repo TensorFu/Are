@@ -13,13 +13,14 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.styles import Style
-from are.core import AreConsole, utils
+from are.core import AreConsole
 from are.core.workspace_manager import WorkspaceManager, WorkspaceType, Workspace
 from are.core.task_manager import TaskManager, Task
 from are.commands import get_all_commands
 import threading
 import time
 from rich.text import Text
+from are.core.frida.device import check_device_connection
 
 
 
@@ -416,7 +417,7 @@ class Are:
             self.console.error(f"附加到进程时出错: {str(e)}")
             return False
 
-    def _start_console(self):
+    def start_console(self):
         """启动交互式控制台"""
         # 设置历史记录
         history_file = os.path.expanduser("~/.are_history")
@@ -516,14 +517,14 @@ class Are:
                 self._stop_device_monitor()  # 停止监控线程
                 
                 # 停止frida-server进程
-                from are.core.utils import kill_frida_server
+                from are.core.frida import kill_frida_server
                 kill_frida_server()
                 
                 self.console.info("再见！")
                 return True
 
         # 检查设备连接状态
-        device_connected = utils.check_device_connection()
+        device_connected = check_device_connection()
 
         # 如果设备已连接但状态为断开，尝试重新初始化
         if device_connected and self._device_disconnected:
@@ -1080,7 +1081,7 @@ class Are:
             # 检查设备连接状态
             try:
                 # 使用utils中的函数检查设备连接
-                current_connection_state = utils.check_device_connection()
+                current_connection_state = check_device_connection()
 
                 # 如果设备状态从断开变为连接
                 if current_connection_state and last_connection_state is False:
@@ -1123,8 +1124,9 @@ class Are:
         """在重新连接后重启Frida服务器"""
         self.console.info("🔄 检查并重启Frida服务器...")
 
-        # 使用utils模块中的函数重启Frida服务器
-        restart_success = utils.restart_frida_server()
+        # 使用frida模块中的函数重启Frida服务器
+        from are.core.frida import restart_frida_server
+        restart_success = restart_frida_server()
 
         # 如果重启成功，尝试恢复会话
         if restart_success and self.process_name:
@@ -1158,7 +1160,7 @@ class Are:
         # 确保在程序意外终止时停止frida-server
         if self._exiting:  # 只有在正常退出时才停止frida-server
             try:
-                from are.core.utils import kill_frida_server
+                from are.core.frida import kill_frida_server
                 kill_frida_server()
             except:
                 pass  # 忽略任何错误，确保清理过程继续

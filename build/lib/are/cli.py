@@ -7,11 +7,19 @@ import subprocess
 import sys
 import click
 import re
-from are.core import AreConsole, utils
+from are.core import AreConsole
 from are.core.are import Are
 import time
 from rich.console import Console
 from rich.panel import Panel
+from are.core.frida import (
+    check_frida_server,
+    check_frida_server_running,
+    start_frida_server,
+    list_devices as frida_list_devices,
+    check_root_access
+)
+from are.core.frida.device import check_device_connection
 
 # Initialize console
 console = AreConsole()
@@ -36,13 +44,13 @@ def prompt_for_frida_server():
 
             # If user just presses Enter, check default paths again
             if not user_input.strip():
-                server_path = utils.check_frida_server()
+                server_path = check_frida_server()
                 if server_path:
                     return server_path
                 continue
 
             # Check if the user-provided path exists
-            server_path = utils.check_frida_server(user_input)
+            server_path = check_frida_server(user_input)
             if server_path:
                 return server_path
             else:
@@ -95,7 +103,7 @@ def cli(ctx):
     # If no subcommand, show help
     if ctx.invoked_subcommand is None:
         # Check if device is connected
-        if not utils.check_device_connection():
+        if not check_device_connection():
             console.error("No Android device connected")
             console.info("Please connect your Android device via USB and enable USB debugging")
             console.info("Then run 'adb devices' to verify the connection")
@@ -104,7 +112,7 @@ def cli(ctx):
         console.success("Android device connected")
 
         # Check if frida-server is already running
-        if utils.check_frida_server_running():
+        if check_frida_server_running():
             console.success("Frida server is already running")
             # Display the banner and continue
             display_are_banner()
@@ -115,13 +123,13 @@ def cli(ctx):
             return
 
         # Check for frida-server
-        server_path = utils.check_frida_server()
+        server_path = check_frida_server()
         if not server_path:
             # Prompt user for frida-server path until valid or exit
             server_path = prompt_for_frida_server()
 
         # Try to start frida-server with the found path
-        start_success = utils.start_frida_server(server_path)
+        start_success = start_frida_server(server_path)
         
         if start_success:
             # Give the server a moment to start
@@ -135,7 +143,7 @@ def cli(ctx):
             are._start_console()
         else:
             # Check root access
-            if not utils.check_root_access():
+            if not check_root_access():
                 console.warning("Root access not available")
                 console.info("Some features may not work without root access")
                 console.info("If your device is rooted, please grant root permissions to ADB")
@@ -168,7 +176,7 @@ def version():
 @cli.command()
 def devices():
     """List available devices"""
-    utils.list_devices()
+    frida_list_devices()
 
 def main():
     """命令行主入口点"""
@@ -184,6 +192,8 @@ def main():
                 sys.argv.insert(2, process_spec)
 
         cli()
+        # 正常退出，不显示帮助信息
+        sys.exit(0)
     except KeyboardInterrupt:
         click.echo("\nOperation cancelled by user")
     except Exception as e:

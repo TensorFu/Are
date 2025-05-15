@@ -5,14 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efb3ec09-d351-4805-a6af-f7a61cecd696" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/are/core/tasks/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/cli.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/are/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/are.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/ui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/devices/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/frida/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/markdown/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/markdown/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/markdown_generator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/session.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/task_manager.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/theme/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/theme/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/typescript.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/ui.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/workspace_manager.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/scripts/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/scripts/base.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/scripts/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/scripts/modules/logger.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/cli.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/core/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/lib/are/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/core/are.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/are/core/ui.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/core/ui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/are/core/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/core/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,7 +71,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;http.proxy&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;ts.external.directory.path&quot;: &quot;/Applications/PyCharm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
@@ -151,6 +166,8 @@
       <workItem from="1747240635774" duration="9000" />
       <workItem from="1747240651172" duration="243000" />
       <workItem from="1747273740946" duration="4760000" />
+      <workItem from="1747278714334" duration="8711000" />
+      <workItem from="1747295426812" duration="309000" />
     </task>
     <servers />
   </component>
