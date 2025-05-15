@@ -21,6 +21,7 @@ are/commands/methods.py
 are/commands/tasks.py
 are/core/__init__.py
 are/core/are.py
+are/core/markdown_generator.py
 are/core/session.py
 are/core/task_manager.py
 are/core/typescript.py

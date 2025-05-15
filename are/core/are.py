@@ -449,9 +449,6 @@ class Are:
         if current_workspace.type == WorkspaceType.MAIN:
             # 在主ARE会话中
             self.console.info("输入 'ps' 查看所有进程")
-            self.console.info("输入 'watching <pid>' 附加到进程")
-            self.console.info("输入 'tasks' 管理任务")
-            self.console.info("输入 'help' 查看所有可用命令")
         else:
             # 在进程特定的会话中
             process_name = current_workspace.metadata.get("process_name", "Unknown")
@@ -730,7 +727,7 @@ class Are:
                         self._add_process_to_tree(root_tree, proc)
             
             # 打印树
-            self.console.print(root_tree)
+            self.console.print_tree(root_tree)
             self.console.info(f"使用 'watching <pid>' 附加到进程或 'watching <process_name> with \"\"' 使用spawn模式启动进程")
 
         except Exception as e:

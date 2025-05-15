@@ -11,6 +11,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
+from rich.tree import Tree
 
 # 定义主题
 are_theme = Theme({
@@ -127,7 +128,6 @@ class AreConsole:
             console=self.console
         )
 
-    # 在AreConsole类中添加新的方法
     def device_disconnected_alert(self):
         """设备断开连接警报"""
         self.console.print("\n" + "!" * 50, style="error")
@@ -141,6 +141,53 @@ class AreConsole:
         self.console.print("[success bold]设备已重新连接！[/success bold]", highlight=True)
         self.console.print("=" * 50, style="success")
         self.console.print("正在重新初始化环境...\n")
+
+    def print_tree(self, data, title: Optional[str] = None):
+        """显示树形数据结构或直接打印已经构建好的Rich Tree
+
+        Args:
+            data: 要显示的数据结构，可以是字典、列表、树对象或其他嵌套结构
+            title: 可选的树形图标题
+        """
+        # 如果data已经是一个Tree对象，直接打印
+        if isinstance(data, Tree):
+            self.console.print(data)
+            return
+
+        # 否则，创建一个树形控件
+        tree = Tree(f"[bold]{title or '数据结构'}[/bold]")
+
+        # 递归构建树
+        def _build_tree(node, data):
+            if isinstance(data, dict):
+                # 处理字典类型
+                for key, value in data.items():
+                    if isinstance(value, (dict, list)) and value:
+                        # 复杂类型递归处理
+                        branch = node.add(f"[yellow]{key}[/yellow]")
+                        _build_tree(branch, value)
+                    else:
+                        # 简单类型直接显示
+                        node.add(f"[yellow]{key}[/yellow]: [green]{value}[/green]")
+            elif isinstance(data, list):
+                # 处理列表类型
+                for i, item in enumerate(data):
+                    if isinstance(item, (dict, list)) and item:
+                        # 复杂类型递归处理
+                        branch = node.add(f"[blue][{i}][/blue]")
+                        _build_tree(branch, item)
+                    else:
+                        # 简单类型直接显示
+                        node.add(f"[blue][{i}][/blue]: [green]{item}[/green]")
+            else:
+                # 其他类型直接显示
+                node.add(f"[green]{data}[/green]")
+
+        # 开始构建树
+        _build_tree(tree, data)
+
+        # 打印树
+        self.console.print(tree)
 
 
 class ProgressSpinner:

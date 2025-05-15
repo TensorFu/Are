@@ -273,52 +273,21 @@ def check_frida_server(custom_path=None):
         return None
 
 def check_frida_server_running():
-    """检查frida-server是否已经在运行"""
+    """检查frida-server是否已经在运行（仅使用端口检测方式）"""
     try:
         console.info("检查frida-server是否正在运行...")
-        
-        # 方法1: 检查端口27042是否在使用中（默认frida-server端口）
-        port_result = subprocess.run(
-            ["adb", "shell", "netstat -tlnp | grep 27042"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
-        
-        console.info(f"netstat检查结果: 返回码={port_result.returncode}, 输出={port_result.stdout}")
-        
-        # 方法2: 尝试使用ps命令查找frida-server进程
-        ps_result = subprocess.run(
-            ["adb", "shell", "ps | grep -E 'frida-server|fs' | grep -v grep"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
-        
-        console.info(f"ps检查结果: 返回码={ps_result.returncode}, 输出={ps_result.stdout}")
-        
-        # 方法3: 尝试列出可用的frida设备
-        try:
-            from frida.core import Device, DeviceManager
-            devices = Device.enumerate_devices()
-            usb_devices = [d for d in devices if d.type == 'usb']
-            console.info(f"frida.Device.enumerate_devices() 结果: USB设备数量={len(usb_devices)}")
-            if usb_devices:
-                for d in usb_devices:
-                    console.info(f"找到USB设备: {d.id} (名称: {d.name})")
-        except Exception as frida_ex:
-            console.info(f"frida API检查失败: {str(frida_ex)}")
 
-        # 综合判断frida-server是否在运行
-        running_by_port = "27042" in port_result.stdout
-        running_by_ps = ps_result.returncode == 0 and ps_result.stdout.strip() != ""
-        
-        is_running = running_by_port or running_by_ps
-        
-        console.info(f"frida-server运行状态: {'运行中' if is_running else '未运行'} " + 
-                     f"(基于端口检查: {'是' if running_by_port else '否'}, " + 
-                     f"基于进程检查: {'是' if running_by_ps else '否'})")
-                    
+        # 检查默认frida-server端口 27042
+        frida_port = 27042
+
+        # 获取占用该端口的进程ID
+        pid = get_pid_by_port(frida_port)
+
+        is_running = pid is not None
+
+        console.info(f"frida-server运行状态: {'运行中' if is_running else '未运行'} " +
+                     f"(进程ID: {pid if is_running else 'N/A'})")
+
         return is_running
     except Exception as e:
         console.error(f"❌ 检查frida-server是否运行时出错: {str(e)}")
@@ -364,7 +333,6 @@ def start_frida_server(server_path):
 
                 # 检查文件权限
                 is_executable = False
-                console.status("📋 检查文件权限...")
 
                 for i in range(5):
 
@@ -378,7 +346,6 @@ def start_frida_server(server_path):
 
                     if "executable" in check_exec.stdout:
                         is_executable = True
-                        console.success("✅ 文件可执行")
                         break
 
                     # 授予可执行权限
@@ -554,132 +521,83 @@ def start_frida_server(server_path):
 
 def get_pid_by_port(port):
     """获取占用特定端口的进程ID
-    
+
     参数:
         port: 端口号
-        
+
     返回:
         占用该端口的进程ID，如果未找到则返回None
     """
     console.info(f"尝试获取占用端口 {port} 的进程ID...")
-    
-    # 尝试不同的命令组合来查找进程
-    commands = []
-    
-    # 使用root权限的命令
-    if check_root_access():
-        commands.extend([
-            f"su -c \"netstat -anp tcp | grep {port}\"",
-            f"su -c \"netstat -tanp | grep {port}\"",
-            f"su -c \"lsof -i :{port}\"",
-            f"su -c \"ss -tanp | grep {port}\""
-        ])
-    
-    # 通用命令，不需要root权限
-    commands.extend([
-        f"netstat -anp tcp | grep {port}",
-        f"netstat -tanp | grep {port}",
-        f"ss -tanp | grep {port}"
-    ])
-    
-    for i, cmd in enumerate(commands):
-        console.info(f"尝试方法 {i+1}: adb shell {cmd}")
+
+    # 仅使用root权限下的netstat命令
+    if not check_root_access():
+        console.warning("未获取到root权限，无法执行查询")
+        return None
+
+    # 使用root权限下的netstat命令
+    cmd = f"su -c \"netstat -tanp | grep {port}\""
+
+    console.info(f"执行命令: adb shell {cmd}")
+
+    try:
+        # 添加超时参数避免命令卡住
         result = subprocess.run(
-            ["adb", "shell", cmd], 
-            capture_output=True, 
-            text=True, 
-            check=False
+            ["adb", "shell", cmd],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=10  # 设置10秒超时
         )
-        
+
         out = result.stdout.strip()
         console.info(f"命令输出: {out}")
-        
+
+        import re
         if out:
-            # 尝试不同的正则表达式来匹配PID
-            patterns = [
-                r"\b(\d+)/\S+",  # 匹配 "5091/fs" 或类似格式
-                r"LISTEN\s+(\d+)",  # 匹配 "LISTEN 5091" 或类似格式
-                r"pid=(\d+)",  # 匹配 "pid=5091" 或类似格式
-                r":(\d+)\s+\(LISTEN\)"  # 匹配某些系统上的特殊格式
-            ]
-            
-            for pattern in patterns:
-                match = re.search(pattern, out)
-                if match:
-                    pid = match.group(1)
-                    console.info(f"找到占用端口 {port} 的进程PID: {pid}")
-                    return pid
-    
-    # 如果上述方法都失败，尝试直接检查正在运行的frida-server进程
-    console.info("通过端口查找失败，尝试直接查找frida-server进程")
-    frida_cmds = [
-        "ps | grep -E 'frida-server|fs' | grep -v grep",
-        "ps -ef | grep -E 'frida-server|fs' | grep -v grep"
-    ]
-    
-    for cmd in frida_cmds:
-        result = subprocess.run(
-            ["adb", "shell", cmd], 
-            capture_output=True, 
-            text=True, 
-            check=False
-        )
-        
-        out = result.stdout.strip()
-        console.info(f"frida进程查询结果: {out}")
-        
-        if out:
-            # 尝试从ps输出中提取PID
-            import re
-            # 尝试多种匹配模式来适应不同的ps输出格式
-            pid_patterns = [
-                r'\s*(\d+)\s+',  # 标准格式：PID位于开头
-                r'^\s*\S+\s+(\d+)',  # 用户名后的PID
-                r'\s+(\d+)\s+\d+\s+\d+',  # Android特有格式
-            ]
-            
-            for line in out.splitlines():
-                for pattern in pid_patterns:
-                    match = re.search(pattern, line)
-                    if match:
-                        pid = match.group(1)
-                        console.info(f"找到frida-server进程PID: {pid}")
-                        return pid
-    
-    console.warning(f"未找到占用端口 {port} 或正在运行的frida-server进程")
-    return None
+            # 尝试匹配PID（格式通常为"数字/进程名"）
+            match = re.search(r"\b(\d+)/\S+", out)
+            if match:
+                pid = match.group(1)
+                console.info(f"找到占用端口 {port} 的进程PID: {pid}")
+                return pid
+
+            # 备用正则表达式匹配
+            match = re.search(r"LISTEN\s+(\d+)", out)
+            if match:
+                pid = match.group(1)
+                console.info(f"找到占用端口 {port} 的进程PID: {pid}")
+                return pid
+
+        console.warning(f"未找到占用端口 {port} 的进程")
+        return None
+
+    except subprocess.TimeoutExpired:
+        console.error(f"执行命令超时")
+        return None
+    except Exception as e:
+        console.error(f"获取PID时出错: {str(e)}")
+        return None
 
 def restart_frida_server():
+    """重启Frida服务器"""
     console.info("🔄 尝试重启Frida服务器...")
-    if check_frida_server_running():
-        console.info("🔍 检测到端口27042有进程正在运行，尝试关闭...")
-        try:
-            pid = get_pid_by_port(27042)
-            if not pid:
-                console.warning("⚠️ 未找到端口27042对应的进程ID")
-            else:
-                kill_cmd = f"kill -9 {pid}"
-                if check_root_access():
-                    kill_cmd = f"su -c \"{kill_cmd}\""
-                subprocess.run(
-                    ["adb", "shell", kill_cmd],
-                    capture_output=True,
-                    text=True
-                )
-                console.success(f"✅ 已杀死 PID={pid} 的进程")
-        except Exception as e:
-            console.error(f"❌ 操作失败: {e}")
-    else:
-        console.info("🔍 端口27042没有进程在运行，将启动新实例")
 
+    # 1. 先停止现有的Frida服务器
+    kill_result = kill_frida_server()
+    if not kill_result:
+        console.warning("⚠️ 停止Frida服务器过程中出现问题，但将继续尝试启动")
+
+    # 2. 检查Frida服务器路径
     server_path = check_frida_server()
     if not server_path:
-        console.warning("⚠️ 未找到Frida服务器，请确保已安装")
+        console.error("❌ 未找到Frida服务器，请确保已安装")
         return False
 
+    # 3. 启动Frida服务器
     console.info(f"🚀 正在启动Frida服务器: {server_path}")
     if start_frida_server(server_path):
-        console.success("✅ Frida服务器已成功启动")
+        console.success("✅ Frida服务器已成功重启")
         return True
     else:
         console.error("❌ Frida服务器启动失败")
@@ -688,184 +606,34 @@ def restart_frida_server():
 def kill_frida_server():
     """停止frida-server进程"""
     try:
-        console.info("========== 开始尝试停止 frida-server 进程 ==========")
-        
-        # 检查当前frida-server运行状态
+        # 1. 检测是否有杀死进程的需求（检查frida-server是否在运行）
         is_running = check_frida_server_running()
-        console.info(f"初始状态检查: frida-server {'正在运行' if is_running else '未运行'}")
-        
         if not is_running:
-            console.info("frida-server 未运行，无需停止")
             return True
-        
-        # 获取运行frida-server的PID
+        # 2. 通过get_pid_by_port函数，找到Frida-server所属的进程ID
         pid = get_pid_by_port(27042)
-        console.info(f"获取PID结果: {pid or '未找到'}")
-        
-        if pid:
-            console.info(f"找到frida-server进程，PID: {pid}")
-            
-            # 首先尝试使用root权限杀死进程
-            kill_cmd = f"kill -9 {pid}"
-            console.info(f"尝试执行命令: su -c '{kill_cmd}'")
-            
-            # 使用root权限
-            result = subprocess.run(
-                ["adb", "shell", "su", "-c", f"{kill_cmd}"],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            console.info(f"命令执行结果: 返回码={result.returncode}, 输出={result.stdout}, 错误={result.stderr}")
-            
-            # 检查是否还在运行
-            is_running = check_frida_server_running()
-            console.info(f"kill -9 后检查: frida-server {'仍在运行' if is_running else '已停止'}")
-            
-            if not is_running:
-                console.success("✅ 已使用root权限停止Frida服务器")
-                return True
-                
-            # 如果仍在运行，尝试使用killall命令
-            console.info("尝试使用killall命令杀死frida-server")
-            result = subprocess.run(
-                ["adb", "shell", "su", "-c", "killall frida-server 2>/dev/null"],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            console.info(f"killall命令执行结果: 返回码={result.returncode}, 输出={result.stdout}, 错误={result.stderr}")
-            
-            # 检查是否还在运行
-            is_running = check_frida_server_running()
-            console.info(f"killall frida-server后检查: frida-server {'仍在运行' if is_running else '已停止'}")
-            
-            if not is_running:
-                console.success("✅ 已使用root权限停止Frida服务器")
-                return True
-            
-            # 尝试杀死fs进程（frida-server的另一个可能名称）
-            console.info("尝试使用killall命令杀死fs进程")
-            result = subprocess.run(
-                ["adb", "shell", "su", "-c", "killall fs 2>/dev/null"],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            console.info(f"killall fs命令执行结果: 返回码={result.returncode}, 输出={result.stdout}, 错误={result.stderr}")
-            
-            # 最后检查
-            is_running = check_frida_server_running()
-            console.info(f"killall fs后检查: frida-server {'仍在运行' if is_running else '已停止'}")
-            
-            if not is_running:
-                console.success("✅ 已停止Frida服务器")
-                return True
-            
-        # 尝试直接在Android中找到并终止frida相关进程
-        console.info("尝试通过Android系统命令找到并终止frida相关进程")
-        
-        # 尝试更直接地查找frida进程
-        find_cmds = [
-            "ps -ef | grep -E 'frida-server|fs' | grep -v grep",
-            "ps | grep -E 'frida-server|fs' | grep -v grep",
-            "ps -A | grep -E 'frida-server|fs' | grep -v grep",
-            "top -n 1 | grep -E 'frida-server|fs'"
-        ]
-        
-        for cmd in find_cmds:
-            console.info(f"执行命令: {cmd}")
-            find_result = subprocess.run(
-                ["adb", "shell", cmd],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            console.info(f"命令结果: {find_result.stdout}")
-            
-            if find_result.stdout.strip():
-                console.info("找到frida相关进程，尝试解析PID")
-                # 尝试从不同格式的ps输出中提取PID
-                import re
-                
-                # 尝试多种匹配模式来适应不同的ps输出格式
-                pid_patterns = [
-                    r'\s*(\d+)\s+',  # 标准格式：PID位于开头
-                    r'^\s*\S+\s+(\d+)',  # 用户名后的PID
-                    r'\s+(\d+)\s+\d+\s+\d+',  # Android特有格式
-                ]
-                
-                pids = set()
-                for line in find_result.stdout.splitlines():
-                    for pattern in pid_patterns:
-                        match = re.search(pattern, line)
-                        if match:
-                            pids.add(match.group(1))
-                            break
-                
-                if pids:
-                    console.info(f"找到以下PID: {', '.join(pids)}")
-                    for pid in pids:
-                        console.info(f"尝试终止PID {pid}")
-                        # 使用多种方式尝试终止进程
-                        kill_commands = [
-                            f"su -c 'kill -9 {pid}'",
-                            f"su -c 'kill -SIGKILL {pid}'",
-                            f"su 0 kill -9 {pid}",
-                            f"su -c 'echo 9 > /proc/{pid}/oom_adj && echo 1 > /proc/{pid}/oom_score_adj'",
-                            f"su -c 'am force-stop org.frida.server'",
-                        ]
-                        
-                        for kill_cmd in kill_commands:
-                            console.info(f"执行: {kill_cmd}")
-                            kill_result = subprocess.run(
-                                ["adb", "shell", kill_cmd],
-                                capture_output=True,
-                                text=True,
-                                check=False
-                            )
-                            console.info(f"结果: 返回码={kill_result.returncode}, 输出={kill_result.stdout}, 错误={kill_result.stderr}")
-                            
-                            # 检查是否还在运行
-                            if not check_frida_server_running():
-                                console.success(f"✅ 已成功停止Frida服务器(PID {pid})")
-                                return True
-                
-        # 尝试使用Android的activity manager进行清理
-        console.info("尝试使用Android系统方法清理")
-        am_commands = [
-            "su -c 'am force-stop org.frida.server'",
-            "su -c 'am kill org.frida.server'",
-            "su -c 'svc power reboot'"  # 最后的手段 - 重启设备
-        ]
-        
-        for am_cmd in am_commands:
-            console.info(f"执行系统命令: {am_cmd}")
-            am_result = subprocess.run(
-                ["adb", "shell", am_cmd],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            console.info(f"结果: 返回码={am_result.returncode}, 输出={am_result.stdout}")
-            
-            # 检查是否还在运行
-            if not check_frida_server_running():
-                console.success("✅ 已成功停止Frida服务器")
-                return True
-                
-        # 最终检查
+        if not pid:
+            return False
+
+        # 3. 用root身份杀死这个进程
+        kill_cmd = f"kill -9 {pid}"
+        result = subprocess.run(
+            ["adb", "shell", "su", "-c", f"{kill_cmd}"],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+
+        # 检查是否成功停止
         is_running = check_frida_server_running()
-        console.info(f"最终状态检查: frida-server {'仍在运行' if is_running else '已停止'}")
-        
+
         if not is_running:
+            console.success("✅ 已成功停止Frida服务器")
             return True
         else:
-            console.error("❌ 所有尝试都失败，无法停止frida-server")
+            console.error("❌ 无法停止frida-server")
             return False
-            
+
     except Exception as e:
         console.error(f"停止Frida服务器时出错: {str(e)}")
-        import traceback
-        console.debug(traceback.format_exc())
         return False
