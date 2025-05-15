@@ -30,6 +30,7 @@ setup(
     entry_points={ # 入口
         'console_scripts': [
             'are=are.cli:main',
+            'are-frida-hook=are.core.frida.test_hook:main',
         ],
     },
     python_requires='>=3.6',
@@ -38,6 +39,9 @@ setup(
             'resources/*',
             'scripts/*.ts',
             'scripts/modules/*.ts',
+            'core/frida/scripts/src/*.ts',
+            'core/frida/scripts/dist/*.js',
+            'core/frida/scripts/tsconfig.json',
         ],
     },
     classifiers=[

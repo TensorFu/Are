@@ -1,2 +1,3 @@
 [console_scripts]
 are = are.cli:main
+are-frida-hook = are.core.frida.test_hook:main

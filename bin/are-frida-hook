@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# bin/are-frida-hook
+# Frida Hook 命令行工具
+
+import os
+import sys
+import argparse
+from pathlib import Path
+
+# 将项目根目录添加到路径
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+sys.path.insert(0, project_root)
+
+from are.core.theme.ui import AreConsole
+from are.core.frida import FridaHook, restart_frida_server, check_frida_server_running
+
+def main():
+    """主函数"""
+    # 创建控制台
+    console = AreConsole()
+    console.banner("ARE Frida Hook 工具")
+    
+    # 创建参数解析器
+    parser = argparse.ArgumentParser(description="Frida Hook 工具")
+    parser.add_argument("process", help="目标进程名称")
+    parser.add_argument("method", help="要Hook的方法签名 (例如: com.example.Class.method 或 libname!funcname)")
+    parser.add_argument("--args", action="store_true", help="显示方法参数")
+    parser.add_argument("--return", action="store_true", help="显示方法返回值")
+    parser.add_argument("--backtrace", action="store_true", help="显示调用栈回溯")
+    parser.add_argument("--compile", action="store_true", help="仅编译TypeScript脚本")
+    parser.add_argument("--restart-server", action="store_true", help="重启Frida服务器")
+    
+    # 解析参数
+    args = parser.parse_args()
+    
+    # 创建FridaHook实例
+    hook = FridaHook()
+    
+    # 如果只需要编译
+    if args.compile:
+        console.info("仅编译TypeScript脚本")
+        if hook.compile_typescript():
+            console.success("编译成功")
+            return 0
+        else:
+            console.error("编译失败")
+            return 1
+    
+    # 检查是否需要重启服务器
+    if args.restart_server:
+        console.info("重启Frida服务器")
+        if restart_frida_server():
+            console.success("Frida服务器重启成功")
+        else:
+            console.error("Frida服务器重启失败")
+            return 1
+    
+    # 检查Frida服务器是否在运行
+    if not check_frida_server_running():
+        console.warning("Frida服务器未运行，尝试启动...")
+        if not restart_frida_server():
+            console.error("无法启动Frida服务器，请确保已正确安装")
+            return 1
+    
+    # 显示Hook信息
+    console.info(f"目标进程: {args.process}")
+    console.info(f"目标方法: {args.method}")
+    console.info(f"选项: " + 
+                 f"{'参数 ' if args.args else ''}" +
+                 f"{'返回值 ' if getattr(args, 'return') else ''}" +
+                 f"{'回溯' if args.backtrace else ''}")
+    
+    # 如果没有指定任何选项，默认显示参数和返回值
+    if not args.args and not getattr(args, 'return') and not args.backtrace:
+        args.args = True
+        setattr(args, 'return', True)
+        console.info("未指定选项，默认显示参数和返回值")
+    
+    # 运行Hook
+    try:
+        hook.run_hook(
+            process_name=args.process,
+            method_signature=args.method,
+            include_args=args.args,
+            include_return_value=getattr(args, 'return'),
+            include_backtrace=args.backtrace
+        )
+        return 0
+    except KeyboardInterrupt:
+        console.info("用户中断，停止Hook")
+        return 0
+    except Exception as e:
+        console.error(f"运行Hook时出错: {str(e)}")
+        import traceback
+        console.debug(traceback.format_exc())
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

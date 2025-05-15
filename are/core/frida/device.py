@@ -6,7 +6,7 @@
 import frida
 import json
 from typing import Optional, List, Dict, Any
-from are.core.ui import AreConsole
+from are.core.theme.ui import AreConsole
 
 # 控制台实例
 console = AreConsole()

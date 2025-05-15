@@ -5,29 +5,83 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efb3ec09-d351-4805-a6af-f7a61cecd696" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/are/core/tasks/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/are/core/cache/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/cache_example.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are.egg-info/PKG-INFO" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/PKG-INFO" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/cli.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are.egg-info/entry_points.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/entry_points.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/hook.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/hook.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/are/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/are.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/devices/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/cache/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/cache/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/are/core/frida/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/markdown/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/markdown/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/markdown_generator.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/session.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/task_manager.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/theme/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/theme/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/typescript.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/ui.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/core/workspace_manager.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/scripts/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/scripts/base.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/scripts/modules/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/are/scripts/modules/logger.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/are/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/cli.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/are/core/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/core/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/are/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/are/core/are.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/frida/device.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/device.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/frida/scripts/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/scripts/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/frida/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/cli.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/base.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/classes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/env.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/help.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/hook.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/info.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/memory.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/methods.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/commands/tasks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/androguard/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/are.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/cache/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/compile_typescript.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/frida/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/frida/device.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/frida/scripts/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/frida/server.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/markdown/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/markdown/md.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/markdown_generator.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/session.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/task_manager.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/tasks/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/tasks/task_manager.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/tasks/workspace_manager.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/theme/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/theme/ui.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/typescript.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/ui.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/unicorn/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/core/workspace_manager.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/resources/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/resources/banner.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/scripts/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/scripts/base.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/scripts/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/are/scripts/modules/logger.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/bin/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/bin/are.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/base.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/classes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/env.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/help.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/info.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/memory.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/commands/methods.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/core/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/core/are.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/core/session.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/core/ui.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/core/utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/resources/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/scripts/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/scripts/modules/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +99,14 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RESET_MODE" value="HARD" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_HOME_DIR$/plugins/python-ce/helpers/typeshed/stubs/setuptools/setuptools/__init__.pyi" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/Library/Caches/JetBrains/PyCharm2024.3/python_stubs/432436112/builtins.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/.venv/lib/python3.12/site-packages/are/cli.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/.venv/lib/python3.12/site-packages/frida/__init__.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/.venv/lib/python3.12/site-packages/frida/core.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/.venv/lib/python3.12/site-packages/rich/progress.py" root0="SKIP_INSPECTION" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
@@ -168,6 +230,8 @@
       <workItem from="1747273740946" duration="4760000" />
       <workItem from="1747278714334" duration="8711000" />
       <workItem from="1747295426812" duration="309000" />
+      <workItem from="1747295740512" duration="697000" />
+      <workItem from="1747296452714" duration="6929000" />
     </task>
     <servers />
   </component>

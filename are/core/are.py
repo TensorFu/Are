@@ -14,8 +14,8 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.styles import Style
 from are.core import AreConsole
-from are.core.workspace_manager import WorkspaceManager, WorkspaceType, Workspace
-from are.core.task_manager import TaskManager, Task
+from are.core.tasks.workspace_manager import WorkspaceManager, WorkspaceType, Workspace
+from are.core.tasks.task_manager import TaskManager, Task
 from are.commands import get_all_commands
 import threading
 import time
@@ -94,14 +94,16 @@ class AreCompleter(Completer):
                             display_meta=f"PID: {process.name}"
                         )
                     
-                    # 然后提供一些常见的Android进程名称补全
-                    common_processes = [
+                    # 然后提供Android应用进程名称的补全
+                    # 按字母顺序显示常见的Android应用进程
+                    android_processes = [
                         name for name in name_to_pid.keys() 
-                        if name.startswith(("com.android.", "android.", "system.", "com.google."))
+                        if any(name.startswith(prefix) for prefix in 
+                              ["com.android.", "android.", "system.", "com.google."])
                     ]
                     
-                    # 限制显示数量，避免列表过长
-                    for name in sorted(common_processes)[:15]:
+                    # 显示所有找到的Android进程
+                    for name in sorted(android_processes):
                         pids = name_to_pid[name]
                         pid_str = f"PID: {pids[0]}" if len(pids) == 1 else f"PIDs: {len(pids)}个"
                         yield Completion(
@@ -484,7 +486,7 @@ class Are:
                 self._exiting = True
                 self.running = False
                 self._stop_device_monitor()
-                self.console.print("\n再见！")
+                self.console.print("\n已退出")
             except Exception as e:
                 if not self._device_disconnected:
                     self.console.error(f"错误: {str(e)}")
@@ -520,7 +522,8 @@ class Are:
                 from are.core.frida import kill_frida_server
                 kill_frida_server()
                 
-                self.console.info("再见！")
+                # 简化退出消息
+                self.console.info("已退出")
                 return True
 
         # 检查设备连接状态
@@ -772,9 +775,6 @@ class Are:
             self.console.error("未连接到设备")
             return
 
-        # 调试信息
-        self.console.info(f"处理 watching 命令，参数: '{args}'")
-
         # 解析命令行
         parts = args.strip().split(" with ", 1)
         process_spec = parts[0].strip()
@@ -786,7 +786,6 @@ class Are:
 
         if len(parts) > 1:
             commands = [cmd.strip() for cmd in parts[1].split(",")]
-            self.console.info(f"解析后的命令: {commands}")
             self.console.info("启用spawn模式")
 
         # 验证进程标识符
@@ -815,7 +814,7 @@ class Are:
                 if commands:
                     self._execute_commands_in_current_workspace(commands)
                 # 启动新的控制台
-                self._start_console()
+                self.start_console()
             else:
                 self.console.error(f"无法附加到PID为 {pid} 的进程")
         else:
@@ -829,27 +828,112 @@ class Are:
                 
             self.console.info(f"按进程名识别，尝试查找和附加到进程: {process_name}")
             
-            # 查找匹配的进程
+            # 查找匹配的进程 - 首先使用Frida API
             matching_processes = []
             try:
+                # 先尝试使用Frida API获取进程列表
                 for process in self.device.enumerate_processes():
-                    if process_name.lower() in process.name.lower():
-                        matching_processes.append(process)
+                    if (process_name.lower() in process.name.lower() or 
+                        process.name.lower().startswith(process_name.lower())):
+                        matching_processes.append({
+                            'name': process.name,
+                            'pid': process.pid,
+                            'source': 'frida'
+                        })
             except Exception as e:
-                self.console.error(f"查找进程时出错: {str(e)}")
-                return
-                
+                self.console.warning(f"使用Frida API查找进程时出错: {str(e)}")
+            
+            # 如果没有找到匹配的进程，或者特别是针对Chrome，使用adb命令获取更完整的进程列表
+            if not matching_processes or process_name.lower() == "com.android.chrome":
+                try:
+                    import subprocess
+                    import re
+                    
+                    self.console.info("使用adb命令获取更完整的进程列表...")
+                    
+                    # 使用adb shell ps命令获取进程列表
+                    adb_cmd = ["adb", "shell", "ps"]
+                    
+                    result = subprocess.run(adb_cmd, capture_output=True, text=True, check=False)
+                    if result.returncode == 0:
+                        # 解析输出，查找匹配的进程
+                        lines = result.stdout.strip().split('\n')
+                        # 正则表达式匹配进程行
+                        # 通常格式为: USER PID PPID VSZ RSS WCHAN PC NAME
+                        # 或: USER PID PPID VSIZE RSS WCHAN ADDR S NAME
+                        for line in lines:
+                            # 基本匹配任何格式的ps输出，假设最后一列是NAME
+                            if process_name.lower() in line.lower():
+                                parts = line.strip().split()
+                                if len(parts) >= 2:  # 确保至少有PID和NAME
+                                    pid = None
+                                    name = None
+                                    
+                                    # 尝试找到数字作为PID
+                                    for i, part in enumerate(parts):
+                                        if part.isdigit() and i < len(parts) - 1:
+                                            pid = int(part)
+                                            # 进程名通常是最后一列
+                                            name = parts[-1]
+                                            break
+                                    
+                                    if pid and name and process_name.lower() in name.lower():
+                                        # 检查这个进程是否已经在列表中
+                                        if not any(p['pid'] == pid for p in matching_processes):
+                                            matching_processes.append({
+                                                'name': name,
+                                                'pid': pid,
+                                                'source': 'adb'
+                                            })
+                except Exception as e:
+                    self.console.warning(f"使用adb获取进程列表时出错: {str(e)}")
+            
             # 处理查找结果
             if not matching_processes:
-                self.console.error(f"找不到匹配 '{process_name}' 的进程")
-                return
+                # 找不到匹配项时，尝试更模糊的匹配
+                try:
+                    # 如果是Android应用，检查不同的进程类型
+                    if process_name.startswith("com."):
+                        self.console.info("尝试使用模糊匹配查找相关进程...")
+                        # 再次使用adb命令搜索，但是更宽松的匹配
+                        import subprocess
+                        
+                        # 使用grep过滤进程名
+                        adb_cmd = ["adb", "shell", f"ps | grep {process_name.split(':')[0]}"]
+                        
+                        result = subprocess.run(adb_cmd, capture_output=True, text=True, check=False)
+                        if result.returncode == 0 or result.returncode == 1:  # grep返回1表示没有匹配
+                            lines = result.stdout.strip().split('\n')
+                            for line in lines:
+                                if line.strip():  # 排除空行
+                                    parts = line.strip().split()
+                                    if len(parts) >= 2:
+                                        for i, part in enumerate(parts):
+                                            if part.isdigit() and i < len(parts) - 1:
+                                                pid = int(part)
+                                                name = parts[-1]
+                                                base_name = process_name.split(':')[0]
+                                                if base_name in name:
+                                                    if not any(p['pid'] == pid for p in matching_processes):
+                                                        matching_processes.append({
+                                                            'name': name,
+                                                            'pid': pid,
+                                                            'source': 'adb-grep'
+                                                        })
+                                                break
+                except Exception as e:
+                    self.console.warning(f"使用模糊匹配查找进程时出错: {str(e)}")
+                    
+                if not matching_processes:
+                    self.console.error(f"找不到匹配 '{process_name}' 的进程")
+                    return
                 
             # 如果有多个匹配项，让用户选择
             selected_process = None
             if len(matching_processes) > 1:
                 self.console.info(f"找到 {len(matching_processes)} 个匹配进程:")
                 for i, process in enumerate(matching_processes):
-                    self.console.print(f"[{i}] {process.name} (PID: {process.pid})")
+                    self.console.print(f"[{i}] {process['name']} (PID: {process['pid']})")
                     
                 # 获取用户选择
                 from rich.prompt import Prompt
@@ -870,16 +954,18 @@ class Are:
                 
             # 附加到选定的进程
             if selected_process:
-                self.console.info(f"正在附加到进程: {selected_process.name} (PID: {selected_process.pid})")
+                pid = selected_process['pid']
+                name = selected_process['name']
+                self.console.info(f"正在附加到进程: {name} (PID: {pid})")
                 
-                if self.attach(str(selected_process.pid)):
+                if self.attach(str(pid)):
                     # 如果有命令，执行它们
                     if commands:
                         self._execute_commands_in_current_workspace(commands)
                     # 启动新的控制台
-                    self._start_console()
+                    self.start_console()
                 else:
-                    self.console.error(f"无法附加到进程: {selected_process.name} (PID: {selected_process.pid})")
+                    self.console.error(f"无法附加到进程: {name} (PID: {pid})")
                     
     def _spawn_process(self, process_name: str, commands=None):
         """使用spawn模式启动并附加到进程
@@ -943,7 +1029,7 @@ class Are:
             }
             
             # 启动新的控制台
-            self._start_console()
+            self.start_console()
             return True
         except frida.ProcessNotFoundError:
             self.console.error(f"找不到进程: {process_name}")
@@ -998,7 +1084,7 @@ class Are:
             self.console.success(f"已从进程 {process_name} 分离")
             
             # 重启控制台
-            self._start_console()
+            self.start_console()
             return True
         except Exception as e:
             self.console.error(f"从进程分离时出错: {str(e)}")

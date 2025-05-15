@@ -5,6 +5,95 @@ A frida-based process instrumentation tool.
 
 A Frida-based Android reverse engineering command-line tool similar to Objection, with richer functionality and more detailed code analysis.
 
+## 功能特点
+
+- 🔄 **自动化Frida服务器管理**
+  - 自动检测和启动frida-server
+  - 支持Root和非Root环境
+
+- 🕵️ **类和方法分析**
+  - 枚举应用程序中的类和方法
+  - 查看方法签名和参数
+
+- 🔍 **内存搜索和修改**
+  - 在内存中搜索数据
+  - 修改内存值
+
+- 🧩 **环境信息收集**
+  - 获取设备和应用程序信息
+  - 检测反调试机制
+
+- 🔌 **Frida Hook支持**
+  - 基于TypeScript的Hook脚本
+  - 支持通过spawn方式启动并hook进程
+  - 监控方法调用、参数和返回值
+
+## 安装
+
+```bash
+# 通过pip安装
+pip install are
+
+# 或者从源码安装
+git clone https://github.com/TensorFu/are.git
+cd are
+pip install -e .
+```
+
+## 依赖项
+
+- Python 3.6+
+- Frida
+- 对于Frida Hook功能: Node.js和TypeScript
+
+## 使用方法
+
+### 基本命令
+
+```bash
+# 启动ARE
+are
+
+# 获取帮助
+are> help
+
+# 列出所有可用的命令
+are> help commands
+```
+
+### Hook 方法
+
+```bash
+# 单层会话模式（直接Hook）
+are> hook <进程名> <方法签名> [--args] [--return] [--backtrace]
+
+# 示例: Hook一个Java方法
+are> hook com.android.chrome java.net.URL.openConnection --args --return
+
+# 示例: Hook一个Native函数
+are> hook com.example.app libnative.so!decrypt --args --return --backtrace
+```
+
+### 两层会话模式（先观察进程，再Hook）
+
+```bash
+# 第一步：启动并附加到一个进程
+are> watch com.android.browser
+
+# 第二步：在已附加的进程中Hook方法
+are> hook java.net.URL.openConnection --args --return
+
+# 可以在同一会话中Hook多个方法
+are> hook android.webkit.WebView.loadUrl --args --return
+are> hook javax.crypto.Cipher.doFinal --args --return --backtrace
+```
+
+## 示例
+
+查看`examples`目录获取更多使用示例:
+
+- `examples/frida_hook_example.py` - 展示如何使用Frida Hook功能
+
 ## Acknowledgments
 
 - 🤖 **[OpenAI · ChatGPT](https://chat.openai.com/)**  
@@ -18,3 +107,6 @@ A Frida-based Android reverse engineering command-line tool similar to Objection
 
 - 🕵️‍♂️ **[Androguard](https://github.com/androguard/androguard)**  
   APK analysis toolkit providing comprehensive decompilation and static analysis capabilities.
+
+- 📱 **[Frida](https://frida.re/)**
+  Dynamic instrumentation toolkit for developers, reverse-engineers, and security researchers.
