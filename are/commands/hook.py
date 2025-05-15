@@ -35,10 +35,6 @@ class HookCommand(CommandBase):
             context: ARE实例
             args: 命令参数
         """
-        if not context.current_session:
-            console.error("No active session!")
-            return
-
         parts = args.strip().split()
         if not parts:
             console.error("Usage: hook <method_signature> [--args] [--return] [--backtrace]")
@@ -47,10 +43,10 @@ class HookCommand(CommandBase):
         method_signature = parts[0]
         options = set(part.lower() for part in parts[1:])
         
-        # 默认行为：显示参数和返回值，但不显示回溯
+        # 默认行为：显示参数和返回值，以及回溯信息
         show_args = "--args" in options or not options
         show_return = "--return" in options or not options
-        show_backtrace = "--backtrace" in options
+        show_backtrace = "--backtrace" in options or True  # 默认显示回溯信息
 
         # 检查 Frida 服务器是否在运行
         if not check_frida_server_running():
@@ -70,7 +66,7 @@ class HookCommand(CommandBase):
             frida_hook = FridaHook()
             
             # 在两层会话模式下hook方法
-            if hasattr(context, 'frida_session') and context.frida_session:
+            if hasattr(context, 'frida_session') and context.frida_session and context.current_process:
                 console.info(f"在现有会话中hook方法: {method_signature}")
                 
                 # 使用已有会话进行hook
@@ -93,21 +89,59 @@ class HookCommand(CommandBase):
                 else:
                     console.error(f"Hook方法失败: {method_signature}")
             else:
-                # 如果没有现有会话，则创建新会话
-                if hasattr(context, 'current_process') and context.current_process:
+                # 检查context是否有frida_device和current_process属性
+                if hasattr(context, 'frida_device') and hasattr(context, 'current_process') and context.current_process:
                     process_name = context.current_process
                     console.info(f"使用当前进程: {process_name}")
                     
-                    # 执行Hook
-                    frida_hook.run_hook(
-                        process_name=process_name,
-                        method_signature=method_signature,
-                        include_args=show_args,
-                        include_return_value=show_return,
-                        include_backtrace=show_backtrace
-                    )
+                    # 如果有设备但没有会话，尝试创建会话
+                    if not hasattr(context, 'frida_session') or not context.frida_session:
+                        # 先尝试找到进程
+                        try:
+                            # 尝试附加到现有进程
+                            pid = context.frida_device.get_process(process_name).pid
+                            context.frida_session = context.frida_device.attach(pid)
+                            console.success(f"已附加到进程 {process_name} (PID: {pid})")
+                        except Exception as e:
+                            # 如果找不到进程，尝试启动进程
+                            console.warning(f"找不到进程 {process_name}，尝试启动...")
+                            try:
+                                pid = context.frida_device.spawn([process_name])
+                                context.frida_session = context.frida_device.attach(pid)
+                                console.success(f"已启动并附加到进程 {process_name} (PID: {pid})")
+                                
+                                # 恢复进程执行
+                                context.frida_device.resume(pid)
+                                console.info("进程已恢复执行")
+                            except Exception as spawn_e:
+                                console.error(f"无法启动进程: {str(spawn_e)}")
+                                return
+                    
+                    # 现在我们应该有一个有效的会话
+                    if hasattr(context, 'frida_session') and context.frida_session:
+                        # 执行Hook
+                        script = frida_hook.hook_method(
+                            session=context.frida_session,
+                            method_signature=method_signature,
+                            include_args=show_args,
+                            include_return_value=show_return,
+                            include_backtrace=show_backtrace
+                        )
+                        
+                        if script:
+                            # 保存脚本引用
+                            if not hasattr(context, 'frida_scripts'):
+                                context.frida_scripts = []
+                            context.frida_scripts.append(script)
+                            
+                            console.success(f"成功hook方法: {method_signature}")
+                            console.info("方法被调用时将自动显示信息")
+                        else:
+                            console.error(f"Hook方法失败: {method_signature}")
+                    else:
+                        console.error("无法创建Frida会话")
                 else:
-                    console.error("未指定目标进程，请先使用 'watch <process_name>' 命令指定进程")
+                    console.error("未指定目标进程，请先使用 'watching <process_name>' 命令指定进程")
                     return
             
         except Exception as e:
