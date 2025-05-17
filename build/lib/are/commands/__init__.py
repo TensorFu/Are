@@ -14,7 +14,7 @@ from are.commands.hook import HookCommand
 from are.commands.tasks import TasksCommand
 from are.commands.watch import WatchCommand
 from are.commands.old_watch import OldWatchCommand
-from are.commands.alternative_explore import AlternativeExploreCommand as ExploreCommand
+from are.commands.explore import ExploreCommand
 
 
 def get_all_commands() -> Dict[str, CommandBase]:

@@ -1,10 +1,11 @@
+"use strict";
 /**
  * are/core/frida/scripts/src/hook.ts
  *
  * 基于Frida的通用hook脚本，用于hook指定方法
  */
 // 全局参数
-var args = {
+let args = {
     processName: '',
     methodSignature: '',
     includeBacktrace: false,
@@ -23,32 +24,32 @@ function parseArguments() {
         // 设置参数 - 在两层会话模式下不需要进程名
         // 在这种模式下，第一个参数就是方法签名
         args = {
-            processName: '',
+            processName: '', // 进程名已经通过watching指定
             methodSignature: Process.argv[1] || '',
             includeBacktrace: Process.argv.indexOf('includeBacktrace') !== -1,
             includeArgs: Process.argv.indexOf('includeArgs') !== -1,
             includeReturnValue: Process.argv.indexOf('includeReturnValue') !== -1
         };
-        console.log("[*] 目标方法: ".concat(args.methodSignature));
-        console.log("[*] \u9009\u9879: \u56DE\u6EAF=".concat(args.includeBacktrace, ", \u53C2\u6570=").concat(args.includeArgs, ", \u8FD4\u56DE\u503C=").concat(args.includeReturnValue));
+        console.log(`[*] 目标方法: ${args.methodSignature}`);
+        console.log(`[*] 选项: 回溯=${args.includeBacktrace}, 参数=${args.includeArgs}, 返回值=${args.includeReturnValue}`);
     }
     catch (e) {
-        console.log("\u53C2\u6570\u89E3\u6790\u9519\u8BEF: ".concat(e));
+        console.log(`参数解析错误: ${e}`);
     }
 }
 // 解析Java方法签名
 function parseMethodSignature(signature) {
     try {
         // 支持 com.example.Class.method 或 com.example.Class#method 格式
-        var parts = signature.includes('#')
+        const parts = signature.includes('#')
             ? signature.split('#')
             : signature.split('.');
-        var methodName = parts.pop() || '';
-        var className = parts.join('.');
-        return { className: className, methodName: methodName };
+        const methodName = parts.pop() || '';
+        const className = parts.join('.');
+        return { className, methodName };
     }
     catch (e) {
-        console.log("\u89E3\u6790\u65B9\u6CD5\u7B7E\u540D\u9519\u8BEF: ".concat(e));
+        console.log(`解析方法签名错误: ${e}`);
         return { className: '', methodName: '' };
     }
 }
@@ -56,11 +57,11 @@ function parseMethodSignature(signature) {
 function generateBacktrace(context) {
     try {
         return Thread.backtrace(context, Backtracer.ACCURATE)
-            .map(function (addr) { return DebugSymbol.fromAddress(addr).toString(); })
+            .map((addr) => DebugSymbol.fromAddress(addr).toString())
             .join('\n');
     }
     catch (e) {
-        return "\u65E0\u6CD5\u751F\u6210\u56DE\u6EAF: ".concat(e);
+        return `无法生成回溯: ${e}`;
     }
 }
 // 格式化参数
@@ -71,7 +72,7 @@ function formatArgument(arg) {
         return 'undefined';
     try {
         if (arg !== null && typeof arg === 'object' && arg.toString && typeof arg.toString === 'function') {
-            var str = arg.toString();
+            const str = arg.toString();
             if (str !== '[object Object]') {
                 return str;
             }
@@ -79,7 +80,7 @@ function formatArgument(arg) {
         return JSON.stringify(arg);
     }
     catch (e) {
-        return "<\u65E0\u6CD5\u683C\u5F0F\u5316: ".concat(e, ">");
+        return `<无法格式化: ${e}>`;
     }
 }
 // Hook Java方法
@@ -88,25 +89,25 @@ function hookJavaMethod(className, methodName) {
         if (Java.available) {
             Java.perform(function () {
                 try {
-                    var targetClass = Java.use(className);
+                    const targetClass = Java.use(className);
                     // 获取指定的方法
                     if (targetClass[methodName]) {
-                        console.log("[+] \u627E\u5230\u65B9\u6CD5: ".concat(className, ".").concat(methodName));
+                        console.log(`[+] 找到方法: ${className}.${methodName}`);
                         // 对所有重载进行处理
-                        var overloads = targetClass[methodName].overloads;
-                        console.log("[*] \u68C0\u6D4B\u5230 ".concat(overloads.length, " \u4E2A\u91CD\u8F7D\u7248\u672C"));
+                        const overloads = targetClass[methodName].overloads;
+                        console.log(`[*] 检测到 ${overloads.length} 个重载版本`);
                         overloads.forEach(function (overload) {
                             overload.implementation = function () {
-                                var self = this;
+                                const self = this;
                                 // 保存参数以便在内部函数中使用
-                                var callArgs = arguments;
+                                const callArgs = arguments;
                                 // 创建基本输出
-                                var output = "[+] \u8C03\u7528 ".concat(className, ".").concat(methodName);
+                                let output = `[+] 调用 ${className}.${methodName}`;
                                 // 添加参数信息
                                 if (args.includeArgs) {
                                     output += "\n[*] 参数:";
-                                    for (var i = 0; i < callArgs.length; i++) {
-                                        output += "\n   \u53C2\u6570[".concat(i, "]: ").concat(formatArgument(callArgs[i]));
+                                    for (let i = 0; i < callArgs.length; i++) {
+                                        output += `\n   参数[${i}]: ${formatArgument(callArgs[i])}`;
                                     }
                                 }
                                 // 添加回溯信息
@@ -117,22 +118,22 @@ function hookJavaMethod(className, methodName) {
                                 // 输出当前信息
                                 console.log(output);
                                 // 调用原始方法
-                                var returnValue = this[methodName].apply(this, callArgs);
+                                const returnValue = this[methodName].apply(this, callArgs);
                                 // 添加返回值信息
                                 if (args.includeReturnValue) {
-                                    console.log("[*] \u8FD4\u56DE\u503C: ".concat(formatArgument(returnValue)));
+                                    console.log(`[*] 返回值: ${formatArgument(returnValue)}`);
                                 }
                                 return returnValue;
                             };
                         });
-                        console.log("[+] \u6210\u529F\u0068\u006F\u006F\u006B\u65B9\u6CD5: ".concat(className, ".").concat(methodName));
+                        console.log(`[+] 成功hook方法: ${className}.${methodName}`);
                     }
                     else {
-                        console.log("[-] \u5728\u7C7B ".concat(className, " \u4E2D\u627E\u4E0D\u5230\u65B9\u6CD5 ").concat(methodName));
+                        console.log(`[-] 在类 ${className} 中找不到方法 ${methodName}`);
                     }
                 }
                 catch (e) {
-                    console.log("[-] Hook Java\u65B9\u6CD5\u65F6\u51FA\u9519: ".concat(e));
+                    console.log(`[-] Hook Java方法时出错: ${e}`);
                 }
             });
         }
@@ -141,38 +142,37 @@ function hookJavaMethod(className, methodName) {
         }
     }
     catch (e) {
-        console.log("[-] \u6267\u884CJavaHook\u65F6\u51FA\u9519: ".concat(e));
+        console.log(`[-] 执行JavaHook时出错: ${e}`);
     }
 }
 // Hook Native方法
 function hookNativeMethod(moduleName, methodName) {
     try {
-        var module = Process.findModuleByName(moduleName);
+        const module = Process.findModuleByName(moduleName);
         if (module) {
-            console.log("[+] \u627E\u5230\u6A21\u5757 ".concat(moduleName, " \u52A0\u8F7D\u5728 ").concat(module.base));
-            var exportSymbols = module.enumerateExports();
-            var targetSymbol = undefined;
-            for (var _i = 0, exportSymbols_1 = exportSymbols; _i < exportSymbols_1.length; _i++) {
-                var sym = exportSymbols_1[_i];
+            console.log(`[+] 找到模块 ${moduleName} 加载在 ${module.base}`);
+            const exportSymbols = module.enumerateExports();
+            let targetSymbol = undefined;
+            for (const sym of exportSymbols) {
                 if (sym.name === methodName) {
                     targetSymbol = sym;
                     break;
                 }
             }
             if (targetSymbol && targetSymbol.address) {
-                console.log("[+] \u627E\u5230\u5BFC\u51FA\u7B26\u53F7 ".concat(methodName, " \u5728\u5730\u5740 ").concat(targetSymbol.address));
+                console.log(`[+] 找到导出符号 ${methodName} 在地址 ${targetSymbol.address}`);
                 // 使用泛型接口而非引用特定模块类型
-                var callbacks = {
+                const callbacks = {
                     onEnter: function (args) {
                         // 存储上下文供onLeave使用
                         this.context = this.context;
                         this.args = args;
-                        var output = "[+] \u8C03\u7528 ".concat(moduleName, "!").concat(methodName);
+                        let output = `[+] 调用 ${moduleName}!${methodName}`;
                         // 添加参数信息
                         if (args && args.includeArgs) {
                             output += "\n[*] 参数 (前4个):";
-                            for (var i = 0; i < 4; i++) {
-                                output += "\n   arg".concat(i, ": ").concat(args[i]);
+                            for (let i = 0; i < 4; i++) {
+                                output += `\n   arg${i}: ${args[i]}`;
                             }
                         }
                         // 添加回溯信息
@@ -184,32 +184,32 @@ function hookNativeMethod(moduleName, methodName) {
                     },
                     onLeave: function (retval) {
                         if (args && args.includeReturnValue) {
-                            console.log("[*] \u8FD4\u56DE\u503C: ".concat(retval));
+                            console.log(`[*] 返回值: ${retval}`);
                         }
                         return retval;
                     }
                 };
                 Interceptor.attach(targetSymbol.address, callbacks);
-                console.log("[+] \u6210\u529F\u0068\u006F\u006F\u006B\u539F\u751F\u65B9\u6CD5: ".concat(moduleName, "!").concat(methodName));
+                console.log(`[+] 成功hook原生方法: ${moduleName}!${methodName}`);
             }
             else {
-                console.log("[-] \u5728\u6A21\u5757 ".concat(moduleName, " \u4E2D\u627E\u4E0D\u5230\u65B9\u6CD5 ").concat(methodName));
+                console.log(`[-] 在模块 ${moduleName} 中找不到方法 ${methodName}`);
             }
         }
         else {
-            console.log("[-] \u627E\u4E0D\u5230\u6A21\u5757 ".concat(moduleName));
+            console.log(`[-] 找不到模块 ${moduleName}`);
         }
     }
     catch (e) {
-        console.log("[-] \u6267\u884CNativeHook\u65F6\u51FA\u9519: ".concat(e));
+        console.log(`[-] 执行NativeHook时出错: ${e}`);
     }
 }
 // 接收消息处理
 function onMessage(message) {
     try {
         if (message.type === 'args' && message.payload) {
-            var payload = message.payload;
-            console.log("[*] \u901A\u8FC7\u6D88\u606F\u6536\u5230\u53C2\u6570\uFF0C\u7C7B\u578B: ".concat(typeof payload));
+            const payload = message.payload;
+            console.log(`[*] 通过消息收到参数，类型: ${typeof payload}`);
             // 根据两层会话模式调整参数处理
             if (typeof payload === 'string') {
                 // 如果只传递了一个字符串参数，假设它是方法签名
@@ -239,15 +239,15 @@ function onMessage(message) {
                     args.includeReturnValue = Boolean(payload.includeReturnValue);
                 }
             }
-            console.log("[*] \u76EE\u6807\u8FDB\u7A0B: ".concat(args.processName));
-            console.log("[*] \u76EE\u6807\u65B9\u6CD5: ".concat(args.methodSignature));
-            console.log("[*] \u9009\u9879: \u56DE\u6EAF=".concat(args.includeBacktrace, ", \u53C2\u6570=").concat(args.includeArgs, ", \u8FD4\u56DE\u503C=").concat(args.includeReturnValue));
+            console.log(`[*] 目标进程: ${args.processName}`);
+            console.log(`[*] 目标方法: ${args.methodSignature}`);
+            console.log(`[*] 选项: 回溯=${args.includeBacktrace}, 参数=${args.includeArgs}, 返回值=${args.includeReturnValue}`);
             // 接收到参数后，立即启动Hook
             main();
         }
     }
     catch (e) {
-        console.log("\u6D88\u606F\u5904\u7406\u9519\u8BEF: ".concat(e));
+        console.log(`消息处理错误: ${e}`);
     }
 }
 // 主函数
@@ -262,7 +262,7 @@ function main() {
             console.log('缺少方法签名');
             return;
         }
-        var _a = parseMethodSignature(args.methodSignature), className = _a.className, methodName = _a.methodName;
+        const { className, methodName } = parseMethodSignature(args.methodSignature);
         if (!className || !methodName) {
             console.log('无效的方法签名');
             return;
@@ -278,7 +278,7 @@ function main() {
         }
     }
     catch (e) {
-        console.log("\u4E3B\u51FD\u6570\u6267\u884C\u9519\u8BEF: ".concat(e));
+        console.log(`主函数执行错误: ${e}`);
     }
 }
 // 注册消息处理函数
@@ -287,7 +287,7 @@ try {
     console.log('[*] 已注册消息处理函数，等待参数...');
 }
 catch (e) {
-    console.log("\u6CE8\u518C\u6D88\u606F\u5904\u7406\u51FD\u6570\u9519\u8BEF: ".concat(e));
+    console.log(`注册消息处理函数错误: ${e}`);
 }
 // 程序启动时执行主函数
 // 注意：当通过-l参数直接加载脚本时，将从命令行获取参数
@@ -302,5 +302,5 @@ try {
     }
 }
 catch (e) {
-    console.log("\u521D\u59CB\u6267\u884C\u9519\u8BEF: ".concat(e));
+    console.log(`初始执行错误: ${e}`);
 }

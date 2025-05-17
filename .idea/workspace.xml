@@ -5,7 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efb3ec09-d351-4805-a6af-f7a61cecd696" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/are/core/output/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/are.egg-info/SOURCES.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/cli.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/are/commands/hook.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/hook.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/commands/watch.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/commands/watch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/androguard/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/are.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/are.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/frida/hook.py" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/hook.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/frida/scripts/dist/hook.js" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/scripts/dist/hook.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/frida/scripts/src/hook.ts" beforeDir="false" afterPath="$PROJECT_DIR$/are/core/frida/scripts/src/hook.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/are/core/typescript.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
